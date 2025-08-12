@@ -24,7 +24,7 @@ if st.button('Create a Report',
              use_container_width=True):
   st.switch_page('pages/12_API_Test.py')
 
-if st.button("View Classification Demo",
+if st.button("Check User Device",
              type='primary',
              use_container_width=True):
   st.switch_page('pages/13_Classification.py')
