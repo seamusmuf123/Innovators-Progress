@@ -34,7 +34,7 @@ SideBarLinks(show_home=True)
 
 # set the title of the page and provide a simple prompt. 
 logger.info("Loading the Home page of the app")
-st.title('CS 3200 Project Templates')
+st.title('Innovators Progress')
 st.write('\n\n')
 # st.write('### Overview:')
 # st.write('\n')
@@ -67,7 +67,7 @@ if st.button('Act as Mohammad, an USAID worker',
     st.session_state['first_name'] = 'Mohammad'
     st.switch_page('pages/10_USAID_Worker_Home.py')
 
-if st.button('Act as System Administrator', 
+if st.button('Act as Naomi, the System Administrator', 
             type = 'primary', 
             use_container_width=True):
     st.session_state['authenticated'] = True
