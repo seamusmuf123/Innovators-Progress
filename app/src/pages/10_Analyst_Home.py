@@ -17,7 +17,7 @@ st.write('### What would you like to do today?')
 if st.button('Create a Workout Plan', 
              type='primary',
              use_container_width=True):
-  st.switch_page('pages/11_Prediction.py')
+  st.switch_page('pages/11_Workout_Plan.py')
 
 if st.button('Create a Report', 
              type='primary',
