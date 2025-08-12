@@ -11,30 +11,83 @@ from typing import Dict, list
 from modules.nav import SideBarLinks
 import requests
 
-st.set_page_config(layout="wide")
+# Set the page configuration/setup for the Workout Plan page
+st.set_page_config(page_title="Create Workout Plan (Jordan – Analyst)", page_icon="🏋️", layout="wide")
 
 # Display the appropriate sidebar links for the role of the logged in user
 SideBarLinks()
 
 st.title("Prediction with Regression")
 
-# create a 2 column layout
-col1, col2 = st.columns(2)
+# ---- LEFT: Plan Builder ----
+with left:
+    st.subheader("Plan Details")
+    with st.form("plan_form", clear_on_submit=False, border=True):
+        plan_title = st.text_input("Plan Title", value="Jordan's Starter Plan")
+        goal = st.selectbox("Primary Goal", options=GOALS, index=0)
+        difficulty = st.selectbox("Difficulty", options=DIFFICULTY, index=0)
+        split = st.selectbox("Training Split", options=SPLITS, index=0)
+        weeks = st.number_input("Duration (weeks)", min_value=1, max_value=12, value=4, step=1)
+        days_per_week = st.slider("Days / Week", min_value=2, max_value=6, value=3)
+        notes = st.text_area("Notes (optional)", placeholder="Constraints, equipment, schedule limits, etc.")
 
-# add one number input for variable 1 into column 1
-with col1:
-    var_01 = st.number_input("Variable 01:", step=1)
+        submit = st.form_submit_button("Generate Schedule", use_container_width=True, type="primary")
 
-# add another number input for variable 2 into column 2
-with col2:
-    var_02 = st.number_input("Variable 02:", step=1)
+    def generate_schedule(split: str, days: int) -> Dict[str, List[str]]:
+        # Keep this intentionally simple and readable
+        schedule: Dict[str, List[str]] = {}
+        if split.startswith("Full Body"):
+            day_block = EXERCISE_LIBRARY["Full Body"]
+            template = [day_block, day_block, day_block]
+        elif split.startswith("Upper"):
+            template = [EXERCISE_LIBRARY["Upper"], EXERCISE_LIBRARY["Lower"], EXERCISE_LIBRARY["Upper"], EXERCISE_LIBRARY["Lower"]]
+        else:  # PPL
+            template = [EXERCISE_LIBRARY["Push"], EXERCISE_LIBRARY["Pull"], EXERCISE_LIBRARY["Legs"],
+                        EXERCISE_LIBRARY["Push"], EXERCISE_LIBRARY["Pull"], EXERCISE_LIBRARY["Legs"]]
+        # Trim / extend to match days requested
+        template = template[:days]
+        for i, exs in enumerate(template, start=1):
+            schedule[f"Day {i}"] = exs
+        return schedule
 
-logger.info(f"var_01 = {var_01}")
-logger.info(f"var_02 = {var_02}")
+    if submit:
+        schedule = generate_schedule(split, days_per_week)
+        plan = {
+            "persona": "Jordan",
+            "role": st.session_state.get("role", "Analyst"),
+            "title": plan_title,
+            "goal": goal,
+            "difficulty": difficulty,
+            "split": split,
+            "weeks": int(weeks),
+            "days_per_week": int(days_per_week),
+            "notes": notes,
+            "schedule": schedule,
+        }
+        st.success("Plan generated.")
 
-# add a button to use the values entered into the number field to send to the
-# prediction function via the REST API
-if st.button("Calculate Prediction", type="primary", use_container_width=True):
-    results = requests.get(f"http://web-api:4000/prediction/{var_01}/{var_02}")
-    json_results = results.json()
-    st.dataframe(json_results)
+        st.subheader("Preview")
+        st.json(plan)
+
+        # Download JSON
+        st.download_button(
+            label="Download Plan JSON",
+            file_name=f"{plan_title.replace(' ', '_').lower()}_plan.json",
+            mime="application/json",
+            data=json.dumps(plan, indent=2),
+            use_container_width=True,
+        )
+
+        with st.expander("Optional: Save to API (POST)", expanded=False):
+            api_url = st.text_input("POST endpoint (e.g., http://web-api:4000/plans)", value="")
+            if st.button("Send Plan to API", use_container_width=True, disabled=not api_url):
+                import requests
+                try:
+                    resp = requests.post(api_url, json=plan, timeout=10)
+                    st.write(f"Status: {resp.status_code}")
+                    try:
+                        st.json(resp.json())
+                    except Exception:
+                        st.write(resp.text)
+                except Exception as e:
+                    st.error(f"Failed to POST: {e}")
