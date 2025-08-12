@@ -1,5 +1,6 @@
-import logging
 from __future__ import annotations
+import logging
+
 
 
 logger = logging.getLogger(__name__)
@@ -7,17 +8,30 @@ logger = logging.getLogger(__name__)
 import streamlit as st
 import json
 from pathlib import Path
-from typing import Dict, list
+from typing import Dict, List
 from modules.nav import SideBarLinks
 import requests
 
 # Set the page configuration/setup for the Workout Plan page
 st.set_page_config(page_title="Create Workout Plan (Jordan – Analyst)", page_icon="🏋️", layout="wide")
+if SideBarLinks:
+    try:
+        SideBarLinks()  # shows role-based links if your nav module sets them based on session_state
+    except Exception:
+        pass
+
+# Ensure a role exists in session state; default this page to "Analyst" for Jordan
+st.session_state.setdefault("role", "Analyst")
+
 
 # Display the appropriate sidebar links for the role of the logged in user
 SideBarLinks()
 
-st.title("Prediction with Regression")
+#Setup Layout
+st.title("Create a Workout Plan")
+st.caption("Persona: Jordan — Role: Analyst")
+
+left, right = st.columns([3, 2], gap="large")
 
 # ---- LEFT: Plan Builder ----
 with left:
@@ -91,3 +105,21 @@ with left:
                         st.write(resp.text)
                 except Exception as e:
                     st.error(f"Failed to POST: {e}")
+    # ---- RIGHT: Diagram Viewer ----
+    with right:
+        st.subheader("Related System Diagram")
+
+        DEFAULT_PATH = Path("/mnt/data/Screenshot 2025-08-12 at 19.22.47.png")
+        uploaded = st.file_uploader("Upload a diagram (PNG/JPG)", type=["png", "jpg", "jpeg"])
+
+        # Prefer uploaded file; else try default path; else show placeholder
+        if uploaded is not None:
+            st.image(uploaded, caption="Uploaded diagram", use_container_width=True)
+        elif DEFAULT_PATH.exists():
+            st.image(str(DEFAULT_PATH), caption="User Persona 3: Jordan, Analyst — Diagram", use_container_width=True)
+        else:
+            st.info("No diagram found. Upload an image to display it here.")
+
+        st.caption(
+            "Tip: Keep this view open while editing the plan so you can align plan fields with entities like Plan, Report, and User Device from the diagram."
+        )
