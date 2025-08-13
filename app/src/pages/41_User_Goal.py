@@ -33,3 +33,11 @@ df = pd.DataFrame(data)
 
 st.dataframe(df)  
 
+# To edit table
+edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
+
+#To update the session state with the edited data
+if st.button("Update Goal"):
+    st.session_state['goal'] = edited_df.to_dict(orient='records')
+    st.success("Goal updated successfully!")
+
