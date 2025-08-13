@@ -24,8 +24,22 @@ if SideBarLinks:
 st.session_state.setdefault("role", "Analyst")
 
 
-# Display the appropriate sidebar links for the role of the logged in user
-SideBarLinks()
+SPLITS = [
+    "Full Body (3 days)",
+    "Upper / Lower (4 days)",
+    "Push / Pull / Legs (6 days)",
+]
+GOALS = ["General Fitness", "Strength", "Hypertrophy", "Endurance", "Weight Loss"]
+DIFFICULTY = ["Beginner", "Intermediate", "Advanced"]
+
+EXERCISE_LIBRARY: Dict[str, List[str]] = {
+    "Full Body": ["Squat", "Bench Press", "Deadlift", "Overhead Press", "Row", "Plank"],
+    "Upper": ["Bench Press", "Incline DB Press", "Rows", "Lat Pulldown", "Shoulder Press", "Curls", "Triceps Pushdown"],
+    "Lower": ["Back Squat", "Romanian Deadlift", "Leg Press", "Lunge", "Calf Raise", "Core"],
+    "Push": ["Bench Press", "Incline Press", "Shoulder Press", "Dips", "Triceps"],
+    "Pull": ["Deadlift (light)", "Barbell Row", "Lat Pulldown", "Face Pull", "Biceps"],
+    "Legs": ["Back Squat", "RDL", "Leg Press", "Lunge", "Hamstring Curl", "Calves", "Core"],
+}
 
 #Setup Layout
 st.title("Create a Workout Plan")
