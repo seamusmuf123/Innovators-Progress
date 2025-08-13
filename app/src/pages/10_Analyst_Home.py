@@ -22,7 +22,7 @@ if st.button('Create a Workout Plan',
 if st.button('Create a Report', 
              type='primary',
              use_container_width=True):
-  st.switch_page('pages/12_API_Test.py')
+  st.switch_page('pages/12_Report.py')
 
 if st.button("Check User Device",
              type='primary',

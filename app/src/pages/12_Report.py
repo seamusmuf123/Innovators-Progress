@@ -1,9 +1,10 @@
-import logging
-logger = logging.getLogger(__name__)
+from __future__ import annotations
+
+import json
+from datetime import date
+from typing import Any, Dict, List
+
 import streamlit as st
-import requests
-from streamlit_extras.app_logo import add_logo
-from modules.nav import SideBarLinks
 
 SideBarLinks()
 
