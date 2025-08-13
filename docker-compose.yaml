@@ -1,37 +1,49 @@
-name: project-app-team-repo
+name: progress-fitness-app
 
 services:
   app:
     build: ./app
-    container_name: web-app
-    hostname: web-app
+    container_name: progress-web-app
+    hostname: progress-web-app
     volumes: ["./app/src:/appcode"]
     environment:
       - WATCHPACK_POLLING=true
+      - DATABASE_URL=mysql://root:password@db:3306/progress
     ports:
       - 8501:8501
+    depends_on:
+      - db
 
   api:
     build: ./api
-    container_name: web-api
-    hostname: web-api
+    container_name: progress-api
+    hostname: progress-api
     volumes: ["./api:/apicode"]
     environment:
       - WATCHPACK_POLLING=true
+      - DATABASE_URL=mysql://root:password@db:3306/progress
     ports:
       - 4000:4000
+    depends_on:
+      - db
 
   db:
     env_file:
       - ./api/.env
     image: mysql:9
-    container_name: mysql_db
+    container_name: progress-mysql-db
     hostname: db
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_DATABASE=progress
+      - MYSQL_USER=progress_user
+      - MYSQL_PASSWORD=progress_pass
     volumes:
       - "./database-files:/docker-entrypoint-initdb.d/:ro"
       - "mysql_data:/var/lib/mysql"
     ports:
       - 3200:3306
+    command: --default-authentication-plugin=mysql_native_password
 
 volumes:
   mysql_data:

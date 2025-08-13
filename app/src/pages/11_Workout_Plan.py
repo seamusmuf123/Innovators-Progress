@@ -23,7 +23,7 @@ if SideBarLinks:
 # Ensure a role exists in session state; default this page to "Analyst" for Jordan
 st.session_state.setdefault("role", "Analyst")
 
-
+# Define constants for the workout plan
 SPLITS = [
     "Full Body (3 days)",
     "Upper / Lower (4 days)",
@@ -119,21 +119,4 @@ with left:
                         st.write(resp.text)
                 except Exception as e:
                     st.error(f"Failed to POST: {e}")
-    # ---- RIGHT: Diagram Viewer ----
-    with right:
-        st.subheader("Related System Diagram")
-
-        DEFAULT_PATH = Path("/mnt/data/Screenshot 2025-08-12 at 19.22.47.png")
-        uploaded = st.file_uploader("Upload a diagram (PNG/JPG)", type=["png", "jpg", "jpeg"])
-
-        # Prefer uploaded file; else try default path; else show placeholder
-        if uploaded is not None:
-            st.image(uploaded, caption="Uploaded diagram", use_container_width=True)
-        elif DEFAULT_PATH.exists():
-            st.image(str(DEFAULT_PATH), caption="User Persona 3: Jordan, Analyst — Diagram", use_container_width=True)
-        else:
-            st.info("No diagram found. Upload an image to display it here.")
-
-        st.caption(
-            "Tip: Keep this view open while editing the plan so you can align plan fields with entities like Plan, Report, and User Device from the diagram."
-        )
+    
