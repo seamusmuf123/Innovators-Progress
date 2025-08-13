@@ -6,6 +6,14 @@ from typing import Any, Dict, List
 
 import streamlit as st
 
+try:
+    from modules.nav import SideBarLinks
+    SideBarLinks()
+except Exception:
+    pass
+
+st.set_page_config(page_title="Reports (Jordan – Analyst)", page_icon="📊", layout="wide")
+
 SideBarLinks()
 
 st.write("# Accessing a REST API from Within Streamlit")
