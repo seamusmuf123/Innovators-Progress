@@ -33,8 +33,36 @@ df = pd.DataFrame(data)
 
 st.dataframe(df)  
 
-# To edit table
-edited_df = st.data_editor(df, num_rows="dynamic", use_container_width=True)
+# Only 'Goal' and 'Deadline' are editable
+edited_df = st.data_editor(
+    df,
+    column_config={
+        "Goal": {"editable": True},
+        "Deadline": {"editable": True}
+    },
+    num_rows="dynamic"
+)
+
+def calculate_progress(deadline_str):
+    today = datetime.date.today()
+    try:
+        deadline = datetime.datetime.strptime(deadline_str, "%Y-%m-%d").date()
+        total_days = (deadline - today).days
+        if total_days <= 0:
+            return "100%"
+        # For demo, assume all goals start today
+        elapsed_days = 0
+        progress = int(100 * elapsed_days / (elapsed_days + total_days))
+        return f"{progress}%"
+    except Exception:
+        return "-"
+
+# Add the calculated column
+edited_df["Progress"] = edited_df["Deadline"].apply(calculate_progress)
+
+if st.button("Update Goals"):
+    # Here you could save edited_df to a file, database, or session state
+    st.success("Goals updated!")
 
 #To update the session state with the edited data
 if st.button("Update Goal"):
