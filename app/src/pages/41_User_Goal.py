@@ -44,7 +44,31 @@ progress_df = pd.DataFrame(st.session_state['progress_data'])
 st.subheader("Your Progress Over Time")
 st.line_chart(progress_df.set_index("Week"))
 
+# Example goals data
+goals_data = {
+    "Goal": [
+        "Increase weight for bench by 15lbs",
+        "Decrease time for running a mile",
+        "Do 10 pull-ups nonstop"
+    ],
+    "Deadline": [
+        "2025-09-01",
+        "2025-10-15",
+        "2025-08-20"
+    ]
+}
 
+df = pd.DataFrame(goals_data)
+
+# Now you can use df in st.data_editor
+edited_df = st.data_editor(
+    df,
+    column_config={
+        "Goal": {"editable": True},
+        "Deadline": {"editable": True}
+    },
+    num_rows="dynamic"
+)
 # Only 'Goal' and 'Deadline' are editable
 edited_df = st.data_editor(
     df,
