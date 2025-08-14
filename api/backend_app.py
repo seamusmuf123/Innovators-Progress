@@ -8,6 +8,37 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+# Mock data for testing without database
+MOCK_MODE = True  # Set to False when database is available
+
+# Mock data
+MOCK_DATA = {
+    'users': [
+        {'user_ID': 1, 'name': 'Maya Johnson', 'email': 'maya@email.com', 'gym_location': 'Downtown Gym'},
+        {'user_ID': 2, 'name': 'Alex LaFrance', 'email': 'alex@gym.com', 'gym_location': 'Downtown Gym'},
+        {'user_ID': 3, 'name': 'Jordan Lee', 'email': 'jordan@email.com', 'gym_location': 'Westside Gym'},
+        {'user_ID': 4, 'name': 'Naomi Smith', 'email': 'naomi@admin.com', 'gym_location': 'Central Gym'}
+    ],
+    'goals': [
+        {'goal_ID': 1, 'user_ID': 1, 'goal_name': 'Lose 10 Pounds', 'task': 'Cardio & Diet', 'status': 'active', 'target_date': '2025-12-31'},
+        {'goal_ID': 2, 'user_ID': 1, 'goal_name': 'Build Lean Muscle', 'task': 'Strength Training', 'status': 'active', 'target_date': '2025-12-31'},
+        {'goal_ID': 3, 'user_ID': 3, 'goal_name': 'Improve Endurance', 'task': 'HIIT Routines', 'status': 'active', 'target_date': '2025-12-31'}
+    ],
+    'equipment': [
+        {'equipment_name': 'Treadmill #1', 'condition': 'available', 'location': 'Cardio Area'},
+        {'equipment_name': 'Bench Press #1', 'condition': 'available', 'location': 'Weight Room'},
+        {'equipment_name': 'Elliptical #1', 'condition': 'maintenance', 'location': 'Cardio Area'}
+    ],
+    'policies': [
+        {'policy_ID': 1, 'title': 'Gym Safety Policy', 'description': 'Ensure all equipment is sanitized and in good condition.', 'category': 'Safety'},
+        {'policy_ID': 2, 'title': 'Video Surveillance Policy', 'description': 'All areas are monitored for safety and accountability.', 'category': 'Security'}
+    ],
+    'reports': [
+        {'report_ID': 1, 'user_ID': 3, 'title': 'Week 1 Summary', 'work_efficiency': 85.5, 'workout_duration': 270, 'calories_burned': 1200},
+        {'report_ID': 2, 'user_ID': 3, 'title': 'Week 2 Summary', 'work_efficiency': 92.0, 'workout_duration': 315, 'calories_burned': 1400}
+    ]
+}
+
 # Database configuration
 DB_CONFIG = {
     'host': os.getenv('DB_HOST', 'db'),
@@ -19,6 +50,9 @@ DB_CONFIG = {
 
 def get_db_connection():
     """Create and return database connection"""
+    if MOCK_MODE:
+        return None
+    
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
         return connection
@@ -29,7 +63,11 @@ def get_db_connection():
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
-    return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
+    return jsonify({
+        'status': 'healthy', 
+        'timestamp': datetime.now().isoformat(),
+        'mode': 'mock' if MOCK_MODE else 'database'
+    })
 
 # ============================================================================
 # PERSONA 1: Maya Johnson (Regular User) - Fitness Tracking Endpoints
@@ -42,6 +80,15 @@ def get_available_equipment():
         user_id = request.args.get('user_id', type=int)
         if not user_id:
             return jsonify({'error': 'user_id parameter required'}), 400
+        
+        if MOCK_MODE:
+            # Return mock data
+            available_equipment = [e for e in MOCK_DATA['equipment'] if e['condition'] == 'available']
+            return jsonify({
+                'user_id': user_id,
+                'equipment': available_equipment,
+                'count': len(available_equipment)
+            })
         
         conn = get_db_connection()
         if not conn:
@@ -77,16 +124,27 @@ def get_available_equipment():
 def manage_goals():
     """Get user goals or create new goal"""
     try:
-        conn = get_db_connection()
-        if not conn:
-            return jsonify({'error': 'Database connection failed'}), 500
-        
-        cursor = conn.cursor(dictionary=True)
-        
         if request.method == 'GET':
             user_id = request.args.get('user_id', type=int)
             if not user_id:
                 return jsonify({'error': 'user_id parameter required'}), 400
+            
+            if MOCK_MODE:
+                # Return mock data
+                user_goals = [g for g in MOCK_DATA['goals'] if g['user_ID'] == user_id]
+                for goal in user_goals:
+                    goal['days_remaining'] = 30  # Mock days remaining
+                return jsonify({
+                    'user_id': user_id,
+                    'goals': user_goals,
+                    'count': len(user_goals)
+                })
+            
+            conn = get_db_connection()
+            if not conn:
+                return jsonify({'error': 'Database connection failed'}), 500
+            
+            cursor = conn.cursor(dictionary=True)
             
             query = """
             SELECT goal_ID, goal_name, task, tracking, records, 
@@ -111,6 +169,28 @@ def manage_goals():
             
             if not all(field in data for field in required_fields):
                 return jsonify({'error': 'Missing required fields'}), 400
+            
+            if MOCK_MODE:
+                # Mock goal creation
+                new_goal = {
+                    'goal_ID': len(MOCK_DATA['goals']) + 1,
+                    'user_ID': data['user_ID'],
+                    'goal_name': data['goal_name'],
+                    'task': data.get('task'),
+                    'status': 'active'
+                }
+                MOCK_DATA['goals'].append(new_goal)
+                return jsonify({
+                    'message': 'Goal created successfully (mock mode)',
+                    'goal_id': new_goal['goal_ID'],
+                    'goal': new_goal
+                }), 201
+            
+            conn = get_db_connection()
+            if not conn:
+                return jsonify({'error': 'Database connection failed'}), 500
+            
+            cursor = conn.cursor(dictionary=True)
             
             query = """
             INSERT INTO Goal (user_ID, goal_name, task, tracking, records, 
@@ -192,6 +272,17 @@ def get_progress_tracker():
         if not user_id:
             return jsonify({'error': 'user_id parameter required'}), 400
         
+        if MOCK_MODE:
+            # Return mock data
+            user_goals = [g for g in MOCK_DATA['goals'] if g['user_ID'] == user_id]
+            for goal in user_goals:
+                goal['days_remaining'] = 30  # Mock days remaining
+            return jsonify({
+                'user_id': user_id,
+                'goals': user_goals,
+                'count': len(user_goals)
+            })
+        
         conn = get_db_connection()
         if not conn:
             return jsonify({'error': 'Database connection failed'}), 500
@@ -230,6 +321,13 @@ def get_progress_tracker():
 def get_gym_policies():
     """Get all active gym policies"""
     try:
+        if MOCK_MODE:
+            # Return mock data
+            return jsonify({
+                'policies': MOCK_DATA['policies'],
+                'count': len(MOCK_DATA['policies'])
+            })
+        
         conn = get_db_connection()
         if not conn:
             return jsonify({'error': 'Database connection failed'}), 500
@@ -261,6 +359,23 @@ def get_gym_policies():
 def get_user_membership_status():
     """Get all gym users with their membership status"""
     try:
+        if MOCK_MODE:
+            # Return mock data
+            mock_users = []
+            for user in MOCK_DATA['users']:
+                mock_users.append({
+                    'user_ID': user['user_ID'],
+                    'name': user['name'],
+                    'email': user['email'],
+                    'gym_location': user['gym_location'],
+                    'membership_status': 'active',
+                    'current_status': 'Active'
+                })
+            return jsonify({
+                'users': mock_users,
+                'count': len(mock_users)
+            })
+        
         conn = get_db_connection()
         if not conn:
             return jsonify({'error': 'Database connection failed'}), 500
@@ -377,6 +492,15 @@ def get_workout_efficiency():
         user_id = request.args.get('user_id', type=int)
         if not user_id:
             return jsonify({'error': 'user_id parameter required'}), 400
+        
+        if MOCK_MODE:
+            # Return mock data
+            user_reports = [r for r in MOCK_DATA['reports'] if r['user_ID'] == user_id]
+            return jsonify({
+                'user_id': user_id,
+                'reports': user_reports,
+                'count': len(user_reports)
+            })
         
         conn = get_db_connection()
         if not conn:
@@ -607,6 +731,17 @@ def get_inactive_memberships():
 def get_gym_usage_stats():
     """Get overall gym usage statistics"""
     try:
+        if MOCK_MODE:
+            # Return mock data
+            return jsonify({
+                'total_users': len(MOCK_DATA['users']),
+                'total_memberships': len(MOCK_DATA['users']),
+                'active_memberships': len(MOCK_DATA['users']),
+                'total_workouts': len(MOCK_DATA['reports']),
+                'avg_workout_duration': 45,
+                'total_calories_burned': 2600
+            })
+        
         conn = get_db_connection()
         if not conn:
             return jsonify({'error': 'Database connection failed'}), 500
@@ -622,7 +757,7 @@ def get_gym_usage_stats():
             AVG(w.duration_minutes) as avg_workout_duration,
             SUM(w.calories_burned) as total_calories_burned
         FROM User u
-        LEFT JOIN Membership m ON u.user_ID = m.user_ID
+        LEFT JOIN Membership m ON u.user_ID = m.membership_ID
         LEFT JOIN Workout_Log w ON u.user_ID = w.user_ID
         """
         
@@ -641,6 +776,16 @@ def get_gym_usage_stats():
 def get_equipment_utilization():
     """Get equipment utilization analysis"""
     try:
+        if MOCK_MODE:
+            # Return mock data
+            return jsonify({
+                'utilization': [
+                    {'location': 'Cardio Area', 'total_equipment': 2, 'available_equipment': 1, 'availability_percentage': 50.0},
+                    {'location': 'Weight Room', 'total_equipment': 1, 'available_equipment': 1, 'availability_percentage': 100.0}
+                ],
+                'count': 2
+            })
+        
         conn = get_db_connection()
         if not conn:
             return jsonify({'error': 'Database connection failed'}), 500
@@ -677,4 +822,8 @@ def get_equipment_utilization():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
+    print("🚀 Progress Fitness App Backend Starting...")
+    print(f"📊 Mode: {'Mock Data' if MOCK_MODE else 'Database'}")
+    print(f"🌐 Server: http://localhost:4000")
+    print(f"🔗 Health Check: http://localhost:4000/health")
     app.run(host='0.0.0.0', port=4000, debug=True)
