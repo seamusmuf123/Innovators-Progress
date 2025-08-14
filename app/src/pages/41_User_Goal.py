@@ -21,39 +21,87 @@ st.write(f"### Hi, {st.session_state['first_name']}.")
 # You can access the session state to make a more customized/personalized app experience
 st.write('Your Goal:')
 
-# Initialize combined DataFrame in session state
-if 'goal_progress' not in st.session_state:
-    st.session_state['goal_progress'] = pd.DataFrame([
-        {"Goal": "Increase bench by 15lbs", "Deadline": "2025-09-01", "Week": "Week 1", "Progress (%)": 10},
-        {"Goal": "Increase bench by 15lbs", "Deadline": "2025-09-01", "Week": "Week 2", "Progress (%)": 30},
-        {"Goal": "Decrease mile time", "Deadline": "2025-10-15", "Week": "Week 1", "Progress (%)": 20},
-        {"Goal": "Decrease mile time", "Deadline": "2025-10-15", "Week": "Week 2", "Progress (%)": 40},
-    ])
+# Initialize progress data in session state
+if 'progress_data' not in st.session_state:
+    st.session_state['progress_data'] = [
+        {"Week": "Week 1", "Progress (%)": 10},
+        {"Week": "Week 2", "Progress (%)": 30},
+        {"Week": "Week 3", "Progress (%)": 50},
+        {"Week": "Week 4", "Progress (%)": 70}
+    ]
 
-# Editable table for all fields except Progress
-edited_df = st.data_editor(
-    st.session_state['goal_progress'],
-    column_config={
-        "Goal": {"editable": True},
-        "Deadline": {"editable": True},
-        "Week": {"editable": True},
-        "Progress (%)": {"editable": True}
-    },
-    num_rows="dynamic"
-)
-
-# Update session state with edits
-if st.button("Update Goals & Progress"):
-    st.session_state['goal_progress'] = edited_df
-    st.success("Goals and progress updated!")
-
-# Show the updated table
-st.subheader("Your Goals and Weekly Progress")
-st.dataframe(st.session_state['goal_progress'], use_container_width=True)
+# Form to log new progress
+with st.form("log_progress"):
+    week = st.text_input("Week (e.g., Week 5)")
+    progress = st.number_input("Progress (%)", min_value=0, max_value=100, step=1)
+    submitted = st.form_submit_button("Log Progress")
+    if submitted and week:
+        st.session_state['progress_data'].append({"Week": week, "Progress (%)": progress})
+        st.success(f"Logged progress for {week}!")
 
 # Show the progress chart
 progress_df = pd.DataFrame(st.session_state['progress_data'])
 st.subheader("Your Progress Over Time")
 st.line_chart(progress_df.set_index("Week"))
 
+# Example goals data
+goals_data = {
+    "Goal": [
+        "Increase weight for bench by 15lbs",
+        "Decrease time for running a mile",
+        "Do 10 pull-ups nonstop"
+    ],
+    "Deadline": [
+        "2025-09-01",
+        "2025-10-15",
+        "2025-08-20"
+    ]
+}
+
+df = pd.DataFrame(goals_data)
+
+# Now you can use df in st.data_editor
+edited_df = st.data_editor(
+    df,
+    column_config={
+        "Goal": {"editable": True},
+        "Deadline": {"editable": True}
+    },
+    num_rows="dynamic"
+)
+# Only 'Goal' and 'Deadline' are editable
+edited_df = st.data_editor(
+    df,
+    column_config={
+        "Goal": {"editable": True},
+        "Deadline": {"editable": True}
+    },
+    num_rows="dynamic"
+)
+
+def calculate_progress(deadline_str):
+    today = datetime.date.today()
+    try:
+        deadline = datetime.datetime.strptime(deadline_str, "%Y-%m-%d").date()
+        total_days = (deadline - today).days
+        if total_days <= 0:
+            return "100%"
+        # For demo, assume all goals start today
+        elapsed_days = 0
+        progress = int(100 * elapsed_days / (elapsed_days + total_days))
+        return f"{progress}%"
+    except Exception:
+        return "-"
+
+# Add the calculated column
+edited_df["Progress"] = edited_df["Deadline"].apply(calculate_progress)
+
+if st.button("Update Goals"):
+    # Here you could save edited_df to a file, database, or session state
+    st.success("Goals updated!")
+
+#To update the session state with the edited data
+if st.button("Update Goal"):
+    st.session_state['goal'] = edited_df.to_dict(orient='records')
+    st.success("Goal updated successfully!")
 
