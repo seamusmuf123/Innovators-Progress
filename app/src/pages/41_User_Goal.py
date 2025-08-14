@@ -55,22 +55,34 @@ if 'goal_progress' not in st.session_state:
         {"Goal": "Decrease mile time", "Target": 1, "Deadline": "2025-10-15", "Week": "Week 2", "Progress Value": 0.4},
     ])
 
-# Post Progress for a Goal (adds a new row to the unified table)
+
+# Post Progress for a Goal (adds a new row to the unified table, with 'Create New Goal' option)
 st.write("#### Post Progress for a Goal")
 goal_df = st.session_state['goal_progress']
-goal_options = goal_df["Goal"].unique().tolist()
+goal_options = goal_df["Goal"].unique().tolist() + ["Create New Goal"]
 with st.form("post_progress_form"):
     selected_goal = st.selectbox("Select Goal", goal_options)
+    if selected_goal == "Create New Goal":
+        new_goal = st.text_input("New Goal Name")
+        new_target = st.number_input("Target (e.g., lbs to increase)", min_value=0.0, step=0.1)
+        new_deadline = st.text_input("Deadline (YYYY-MM-DD)")
+        goal_to_use = new_goal
+        target_to_use = new_target
+        deadline_to_use = new_deadline
+    else:
+        goal_to_use = selected_goal
+        # Use the first matching row for target and deadline
+        goal_row = goal_df[goal_df["Goal"] == selected_goal].iloc[0]
+        target_to_use = goal_row["Target"]
+        deadline_to_use = goal_row["Deadline"]
     selected_week = st.text_input("Week (e.g., Week 3)")
     progress_value = st.number_input("Progress Value (e.g., lbs increased)", min_value=0.0, step=0.1)
     submitted = st.form_submit_button("Post Progress")
-    if submitted and selected_goal and selected_week:
-        # Find target and deadline for the selected goal
-        goal_row = goal_df[goal_df["Goal"] == selected_goal].iloc[0]
+    if submitted and goal_to_use and selected_week:
         new_row = {
-            "Goal": selected_goal,
-            "Target": goal_row["Target"],
-            "Deadline": goal_row["Deadline"],
+            "Goal": goal_to_use,
+            "Target": target_to_use,
+            "Deadline": deadline_to_use,
             "Week": selected_week,
             "Progress Value": progress_value
         }
@@ -78,14 +90,23 @@ with st.form("post_progress_form"):
             st.session_state['goal_progress'],
             pd.DataFrame([new_row])
         ], ignore_index=True)
-        st.success(f"Progress posted for {selected_goal} in {selected_week}!")
+        st.success(f"Progress posted for {goal_to_use} in {selected_week}!")
         goal_df = st.session_state['goal_progress']
+
 
 # Always calculate Progress (%) and show only one table
 goal_df = goal_df.copy()
 goal_df["Progress (%)"] = (goal_df["Progress Value"] / goal_df["Target"] * 100).round(1)
 st.session_state['goal_progress'] = goal_df
 st.dataframe(goal_df, use_container_width=True, hide_index=True)
+
+# For plotting, aggregate by Goal and Week (take the latest Progress Value for each pair)
+chart_df = goal_df.sort_values("Week").drop_duplicates(subset=["Goal", "Week"], keep="last")
+st.subheader("Your Progress Over Time (All Goals)")
+if not chart_df.empty:
+    st.line_chart(chart_df.pivot(index='Week', columns='Goal', values='Progress (%)'))
+else:
+    st.write("No progress data to display.")
 
 # 5. Visual Progress Tracker
 st.subheader("Your Progress Over Time (All Goals)")
