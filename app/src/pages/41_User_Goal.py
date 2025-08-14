@@ -44,7 +44,8 @@ if st.button("Update Routine", key="update_routine"):
     st.success("Routine updated!")
 
 
-# 4. Goal Setting & Progress Tracking (with calculated progress)
+
+# 4. Unified Goal Setting & Progress Tracking Table
 st.subheader("Set Your Goals and Track Progress")
 if 'goal_progress' not in st.session_state:
     st.session_state['goal_progress'] = pd.DataFrame([
@@ -54,30 +55,11 @@ if 'goal_progress' not in st.session_state:
         {"Goal": "Decrease mile time", "Target": 1, "Deadline": "2025-10-15", "Week": "Week 2", "Progress Value": 0.4},
     ])
 
-# Editable fields: Goal, Target, Deadline, Week, Progress Value
-goal_df = st.data_editor(
-    st.session_state['goal_progress'],
-    column_config={
-        "Goal": {"editable": True},
-        "Target": {"editable": True, "type": "number"},
-        "Deadline": {"editable": True},
-        "Week": {"editable": True},
-        "Progress Value": {"editable": True, "type": "number"},
-        # Progress (%) is not editable
-        "Progress (%)": {"editable": False, "type": "number"}
-    },
-    num_rows="dynamic",
-    key="goal_editor"
-)
-
-# Calculate Progress (%)
-goal_df = goal_df.copy()
-goal_df["Progress (%)"] = (goal_df["Progress Value"] / goal_df["Target"] * 100).round(1)
-st.session_state['goal_progress'] = goal_df
-
+# Post Progress for a Goal (adds a new row to the unified table)
 st.write("#### Post Progress for a Goal")
+goal_df = st.session_state['goal_progress']
+goal_options = goal_df["Goal"].unique().tolist()
 with st.form("post_progress_form"):
-    goal_options = goal_df["Goal"].unique().tolist()
     selected_goal = st.selectbox("Select Goal", goal_options)
     selected_week = st.text_input("Week (e.g., Week 3)")
     progress_value = st.number_input("Progress Value (e.g., lbs increased)", min_value=0.0, step=0.1)
@@ -97,9 +79,13 @@ with st.form("post_progress_form"):
             pd.DataFrame([new_row])
         ], ignore_index=True)
         st.success(f"Progress posted for {selected_goal} in {selected_week}!")
+        goal_df = st.session_state['goal_progress']
 
-# Show the updated table (Progress (%) is calculated, not editable)
-st.dataframe(st.session_state['goal_progress'], use_container_width=True, hide_index=True)
+# Always calculate Progress (%) and show only one table
+goal_df = goal_df.copy()
+goal_df["Progress (%)"] = (goal_df["Progress Value"] / goal_df["Target"] * 100).round(1)
+st.session_state['goal_progress'] = goal_df
+st.dataframe(goal_df, use_container_width=True, hide_index=True)
 
 # 5. Visual Progress Tracker
 st.subheader("Your Progress Over Time (All Goals)")
