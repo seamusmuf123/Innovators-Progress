@@ -13,6 +13,55 @@ def show_home_page():
     st.markdown('<h1 class="main-header">💪 Progress</h1>', unsafe_allow_html=True)
     st.markdown('<h2 style="text-align: center; color: #666;">Data-Driven Personal Fitness App</h2>', unsafe_allow_html=True)
     
+    # Add Today's Routine and Quick Start sections
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### 🏋️ **Today's Routine**")
+        st.markdown("""
+        **Morning Workout (30 min)**
+        - 10 min warm-up cardio
+        - 15 min strength training
+        - 5 min cool-down stretch
+        
+        **Afternoon Activity**
+        - 20 min walking or light cardio
+        - Focus on consistency over intensity
+        """)
+        
+        # Quick action buttons for routine
+        if st.button("✅ Mark Complete", key="morning_routine"):
+            st.success("Great job! Morning routine completed!")
+        
+        if st.button("📝 Log Workout", key="log_workout"):
+            st.info("Workout logging feature coming soon!")
+
+    with col2:
+        st.markdown("### 🚀 **Quick Start**")
+        st.markdown("""
+        **1. Choose Your Goal**
+        - Weight Loss
+        - Muscle Building
+        - General Fitness
+        - Endurance
+        
+        **2. Pick Your Level**
+        - Beginner
+        - Intermediate
+        - Advanced
+        
+        **3. Start Your Journey**
+        - Set realistic targets
+        - Track your progress
+        - Stay consistent
+        """)
+        
+        # Quick start action
+        if st.button("🎯 Set Goal", key="set_goal"):
+            st.info("Goal setting feature coming soon!")
+    
+    st.markdown("---")
+    
     # App overview
     col1, col2 = st.columns(2)
     

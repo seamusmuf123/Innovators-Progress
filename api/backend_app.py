@@ -9,7 +9,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Mock data for testing without database
-MOCK_MODE = True  # Set to False when database is available
+MOCK_MODE = False  # Set to True when database is not available
 
 # Mock data
 MOCK_DATA = {
@@ -55,18 +55,37 @@ def get_db_connection():
     
     try:
         connection = mysql.connector.connect(**DB_CONFIG)
+        print(f"✅ Database connected successfully to {DB_CONFIG['host']}:{DB_CONFIG['port']}")
         return connection
     except mysql.connector.Error as err:
-        print(f"Error connecting to database: {err}")
+        print(f"❌ Error connecting to database: {err}")
+        print(f"🔧 Database config: {DB_CONFIG}")
         return None
 
 @app.route('/health', methods=['GET'])
 def health_check():
     """Health check endpoint"""
+    db_status = "unknown"
+    if MOCK_MODE:
+        db_status = "mock_mode"
+    else:
+        conn = get_db_connection()
+        if conn:
+            db_status = "connected"
+            conn.close()
+        else:
+            db_status = "connection_failed"
+    
     return jsonify({
         'status': 'healthy', 
         'timestamp': datetime.now().isoformat(),
-        'mode': 'mock' if MOCK_MODE else 'database'
+        'mode': 'mock' if MOCK_MODE else 'database',
+        'database_status': db_status,
+        'database_config': {
+            'host': DB_CONFIG['host'],
+            'port': DB_CONFIG['port'],
+            'database': DB_CONFIG['database']
+        }
     })
 
 # ============================================================================
@@ -92,7 +111,15 @@ def get_available_equipment():
         
         conn = get_db_connection()
         if not conn:
-            return jsonify({'error': 'Database connection failed'}), 500
+            print("⚠️ Database connection failed, falling back to mock data")
+            # Fallback to mock data when database is unavailable
+            available_equipment = [e for e in MOCK_DATA['equipment'] if e['condition'] == 'available']
+            return jsonify({
+                'user_id': user_id,
+                'equipment': available_equipment,
+                'count': len(available_equipment),
+                'note': 'Using mock data due to database connection failure'
+            })
         
         cursor = conn.cursor(dictionary=True)
         
@@ -824,6 +851,9 @@ def get_equipment_utilization():
 if __name__ == '__main__':
     print("🚀 Progress Fitness App Backend Starting...")
     print(f"📊 Mode: {'Mock Data' if MOCK_MODE else 'Database'}")
+    if not MOCK_MODE:
+        print(f"🗄️ Database: {DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}")
     print(f"🌐 Server: http://localhost:4000")
     print(f"🔗 Health Check: http://localhost:4000/health")
+    print(f"🔍 Database Status: http://localhost:4000/health")
     app.run(host='0.0.0.0', port=4000, debug=True)
