@@ -95,19 +95,11 @@ goal_df["Progress (%)"] = (goal_df["Progress Value"] / goal_df["Target"] * 100).
 st.session_state['goal_progress'] = goal_df
 st.dataframe(goal_df, use_container_width=True, hide_index=True)
 
+
 # For plotting, aggregate by Goal and Week (take the latest Progress Value for each pair)
 chart_df = goal_df.sort_values("Week").drop_duplicates(subset=["Goal", "Week"], keep="last")
 st.subheader("Your Progress Over Time (All Goals)")
 if not chart_df.empty:
-    st.line_chart(chart_df.pivot(index='Week', columns='Goal', values='Progress (%)'))
-else:
-    st.write("No progress data to display.")
-
-# 5. Visual Progress Tracker
-st.subheader("Your Progress Over Time (All Goals)")
-if not st.session_state['goal_progress'].empty:
-    chart_df = st.session_state['goal_progress'].copy()
-    chart_df['Progress (%)'] = pd.to_numeric(chart_df['Progress (%)'], errors='coerce')
     st.line_chart(chart_df.pivot(index='Week', columns='Goal', values='Progress (%)'))
 else:
     st.write("No progress data to display.")
