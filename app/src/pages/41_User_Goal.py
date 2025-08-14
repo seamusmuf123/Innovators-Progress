@@ -21,17 +21,29 @@ st.write(f"### Hi, {st.session_state['first_name']}.")
 # You can access the session state to make a more customized/personalized app experience
 st.write('Your Goal:')
 
+# Initialize progress data in session state
+if 'progress_data' not in st.session_state:
+    st.session_state['progress_data'] = [
+        {"Week": "Week 1", "Progress (%)": 10},
+        {"Week": "Week 2", "Progress (%)": 30},
+        {"Week": "Week 3", "Progress (%)": 50},
+        {"Week": "Week 4", "Progress (%)": 70}
+    ]
 
-# get the goal the user has set for themselves
-data = {
-    "Goal": ["Increase weight for bench by 15lbs", "Decrease time for running a mile", "Do 10 pull-ups nonstop"],
-    "Progress": ["50%", "20%", "80%"],
-    "Deadline": ["2025-09-01", "2025-10-15", "2025-08-20"]
-}
+# Form to log new progress
+with st.form("log_progress"):
+    week = st.text_input("Week (e.g., Week 5)")
+    progress = st.number_input("Progress (%)", min_value=0, max_value=100, step=1)
+    submitted = st.form_submit_button("Log Progress")
+    if submitted and week:
+        st.session_state['progress_data'].append({"Week": week, "Progress (%)": progress})
+        st.success(f"Logged progress for {week}!")
 
-df = pd.DataFrame(data)
+# Show the progress chart
+progress_df = pd.DataFrame(st.session_state['progress_data'])
+st.subheader("Your Progress Over Time")
+st.line_chart(progress_df.set_index("Week"))
 
-st.dataframe(df)  
 
 # Only 'Goal' and 'Deadline' are editable
 edited_df = st.data_editor(
