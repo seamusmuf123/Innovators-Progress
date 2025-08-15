@@ -1,22 +1,28 @@
 import streamlit as st
-from streamlit_extras.app_logo import add_logo
-from modules.nav import SideBarLinks
 
-SideBarLinks()
+st.title("About Progress App")
 
-st.write("# About this App")
+st.markdown("""
+## About
 
-st.markdown(
-    """
-    This is a demo app for Data and Software in International Government and Politics Dialogue 2025 Project Course.  
+Progress is a data-driven personal fitness app designed to help users track their workouts, set and achieve goals, and visualize their progress over time. The app supports multiple user personas, including regular users, gym staff, analysts, and administrators.
 
-    The goal of this demo is to provide information on the tech stack 
-    being used as well as demo some of the features of the various platforms. 
+**Key Features:**
+- Dynamic progress visualization
+- Personalized goal setting
+- Routine planning and tracking
+- Consistency and streak tracking
+- Multi-persona support
 
-    Stay tuned for more information and features to come!
-    """
-)
+---
 
-# Add a button to return to home page
-if st.button("Return to Home", type="primary"):
-    st.switch_page("Home.py")
+**Developed by:**
+- Maya Johnson (User)
+- Alex LaFrance (Desk Attendant)
+- Jordan Lee (Analyst)
+- Naomi Smith (System Admin)
+
+---
+
+For more information, visit our [GitHub repository](https://github.com/seamusmuf123/Innovators-Progress).
+""")
