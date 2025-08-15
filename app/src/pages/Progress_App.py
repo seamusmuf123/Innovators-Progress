@@ -125,7 +125,16 @@ def show_maya_page():
         st.info("Stay consistent! Remember to log your workouts this week.")
 
         # 3. Routine Planning Table
+        df = pd.DataFrame({
+    "Day": [f"Day {i+1}" for i in range(30)],
+    "Workout": ["Exercise"]*30,
+    "Sets": [3]*30,
+    "Reps": [10]*30,
+    "Notes": [f"Note {i+1}" for i in range(30)]
+})
 
+        st.dataframe(df, use_container_width=True, height=400)
+        
         st.subheader("Routine Planning")
         if 'routine_plan_maya' not in st.session_state:
             st.session_state['routine_plan_maya'] = pd.DataFrame([
