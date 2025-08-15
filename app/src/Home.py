@@ -83,5 +83,13 @@ if st.button('Act as Maya, a User',
     st.session_state['first_name'] = 'Maya'
     st.switch_page('pages/40_User_Home.py')
 
+if st.button('Progress App', 
+            type = 'primary', 
+            use_container_width=True):
+    st.session_state['authenticated'] = True
+    st.session_state['role'] = 'app'
+    st.session_state['first_name'] = 'Progress'
+    st.switch_page('pages/Progress_App.py')
+
 
 

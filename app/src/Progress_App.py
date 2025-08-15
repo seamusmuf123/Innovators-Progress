@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 import streamlit as st
 import requests
 import pandas as pd
@@ -5,6 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import json
+from modules.nav import SideBarLinks
 
 API_BASE_URL = "http://localhost:4000/api"
 
