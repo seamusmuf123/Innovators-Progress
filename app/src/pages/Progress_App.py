@@ -5,11 +5,11 @@ import requests
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-from datetime import datetime, timedelta
-import json
-from modules.nav import SideBarLinks
+
+API_BASE_URL = "http://localhost:8501"
 
 API_BASE_URL = "http://localhost:4000/api"
+
 
 def show_home_page():
     logger.info("Progress run method")
@@ -77,7 +77,28 @@ def show_home_page():
     except:
         st.info("API connection: Mock mode active")
 
+
 def show_maya_page():
+    import requests
+
+    user_id = st.number_input("Enter your User ID:", min_value=1, value=1, step=1, key="maya_user_id")
+    if st.button("Load Goals", key="maya_load_goals"):
+        try:
+            response = requests.get("http://localhost:4000/api/goals/1")
+            if response.status_code == 200:
+                data = response.json()
+                goals = data.get("goals", [])
+                if goals:
+                    import pandas as pd
+                    st.dataframe(pd.DataFrame(goals), use_container_width=True)
+                    st.write("hi")
+                else:
+                    st.info("No goals found for this user.")
+            else:
+                st.error("Could not fetch goals from API")
+        except Exception as e:
+            st.error(f"API error: {e}")
+    logger.info("Loading Maya Page")
     """Maya Johnson - Regular User Interface (Wireframes 1 & 2)"""
     st.markdown('<h1 class="main-header">👩‍💼 Maya Johnson</h1>', unsafe_allow_html=True)
     st.markdown('<h3 style="text-align: center; color: #666;">Regular User - Fitness Tracking & Goals</h3>', unsafe_allow_html=True)
@@ -174,13 +195,6 @@ def show_maya_page():
         if 'goal_progress_maya' not in st.session_state:
             # Add 30 example rows for goals
             goal_names = [
-                "Increase bench by 15lbs", "Decrease mile time", "Run 5k under 25min", "Lose 5lbs", "Do 10 pull-ups",
-                "Squat 200lbs", "Deadlift 250lbs", "Cycle 50 miles", "Swim 1 mile", "Hold plank 2 min",
-                "Complete HIIT session", "Improve flexibility", "Master handstand", "Reduce body fat 2%",
-                "Walk 10,000 steps", "Climb 20 flights", "Row 2k under 8min", "Jump rope 500 times",
-                "Do 50 push-ups", "Stretch daily", "Track calories", "Sleep 8 hours", "Drink 2L water",
-                "Meal prep weekly", "Try new sport", "Join group class", "Log workouts daily",
-                "Increase vertical jump", "Improve balance", "Reduce resting HR"
             ]
             st.session_state['goal_progress_maya'] = pd.DataFrame([
                 {
@@ -699,17 +713,31 @@ def main():
     
     # Sidebar navigation
     st.sidebar.title("🏠 Progress App")
+
+    persona_options = [
+        ("🏠 Home", "home"),
+        ("👩‍💼 Maya Johnson (User)", "maya"),
+        ("👨‍💼 Alex LaFrance (Desk Attendant)", "alex"),
+        ("👨‍💻 Jordan Lee (Analyst)", "jordan"),
+        ("👩‍💻 Naomi (System Admin)", "naomi")
+    ]
+    label_to_key = {label: key for label, key in persona_options}
+    key_to_label = {key: label for label, key in persona_options}
+
+    # Read query param
+    query_params = st.experimental_get_query_params()
+    page_key = query_params.get("page", ["home"])[0]
+    default_label = key_to_label.get(page_key, "🏠 Home")
+
     page = st.sidebar.selectbox(
         "Choose your role:",
-        [
-            "🏠 Home",
-            "👩‍💼 Maya Johnson (User)",
-            "👨‍💼 Alex LaFrance (Desk Attendant)", 
-            "👨‍💻 Jordan Lee (Analyst)",
-            "👩‍💻 Naomi (System Admin)"
-        ]
+        [label for label, _ in persona_options],
+        index=[label for label, _ in persona_options].index(default_label),
+        key="persona_selectbox"
     )
-    
+    # Set query param on change
+    st.experimental_set_query_params(page=label_to_key[page])
+
     # Page routing
     if page == "🏠 Home":
         show_home_page()
@@ -721,6 +749,3 @@ def main():
         show_jordan_page()
     elif page == "👩‍💻 Naomi (System Admin)":
         show_naomi_page()
-
-if __name__ == "__main__":
-    main()

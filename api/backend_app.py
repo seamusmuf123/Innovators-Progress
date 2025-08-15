@@ -48,7 +48,44 @@ def health_check():
 # ============================================================================
 # PERSONA 1: Maya Johnson (Regular User) - Fitness Tracking Endpoints
 # ============================================================================
-
+@app.route('/api/equipment/available', methods=['GET'])
+def get_available_equipment():
+    """Get available equipment for a specific gym location"""
+    try:
+        user_id = request.args.get('user_id', type=int)
+        if not user_id:
+            return jsonify({'error': 'user_id parameter required'}), 400
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        cursor = conn.cursor(dictionary=True)
+        
+        # Get user's gym location and available equipment
+        query = """
+        SELECT e.equipment_name, e.`condition`, e.location, 
+               e.last_maintenance, e.next_maintenance
+        FROM Equipment_Maintenance e
+        WHERE e.`condition` = 'available' 
+            AND e.location = (SELECT gym_location FROM User WHERE user_ID = %s)
+        """
+        
+        cursor.execute(query, (user_id,))
+        equipment = cursor.fetchall()
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({
+            'user_id': user_id,
+            'equipment': equipment,
+            'count': len(equipment)
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
 @app.route('/api/equipment/available', methods=['GET'])
 def get_available_equipment():
     """Get available equipment for a specific gym location"""
@@ -87,90 +124,41 @@ def get_available_equipment():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/goals', methods=['GET', 'POST'])
-def manage_goals():
+@app.route('/api/goals/<userid>', methods=['GET'])
+def manage_goals(userid):
     """Get user goals or create new goal"""
-    try:
-        if request.method == 'GET':
-            user_id = request.args.get('user_id', type=int)
-            if not user_id:
-                return jsonify({'error': 'user_id parameter required'}), 400
+    if request.method == 'GET':
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+
+    cursor = conn.cursor(dictionary=True)
             
-            conn = get_db_connection()
-            if not conn:
-                return jsonify({'error': 'Database connection failed'}), 500
+    query = """
+    SELECT goal_ID, goal_name, task, tracking, records, 
+    reminders, target_date, status, created_at
+    FROM Goal 
+    WHERE user_ID = ?
+    ORDER BY created_at DESC
+    """
             
-            cursor = conn.cursor(dictionary=True)
+    cursor.execute(query, (userid,))
+    goals = cursor.fetchall()
             
-            query = """
-            SELECT goal_ID, goal_name, task, tracking, records, 
-                   reminders, target_date, status, created_at
-            FROM Goal 
-            WHERE user_ID = %s
-            ORDER BY created_at DESC
-            """
+    cursor.close()
+    conn.close()
             
-            cursor.execute(query, (user_id,))
-            goals = cursor.fetchall()
-            
-            cursor.close()
-            conn.close()
-            
-            return jsonify({
-                'user_id': user_id,
-                'goals': goals,
-                'count': len(goals)
+    return jsonify({
+        'user_id': user_id,
+        'goals': goals,
+        'count': len(goals)
             })
             
-        elif request.method == 'POST':
-            data = request.get_json()
-            required_fields = ['user_ID', 'goal_name']
-            
-            if not all(field in data for field in required_fields):
-                return jsonify({'error': 'Missing required fields'}), 400
-            
-            conn = get_db_connection()
-            if not conn:
-                return jsonify({'error': 'Database connection failed'}), 500
-            
-            cursor = conn.cursor(dictionary=True)
-            
-            query = """
-            INSERT INTO Goal (user_ID, goal_name, task, tracking, records, 
-                            reminders, target_date, status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-            """
-            
-            values = (
-                data['user_ID'],
-                data['goal_name'],
-                data.get('task'),
-                data.get('tracking'),
-                data.get('records'),
-                data.get('reminders'),
-                data.get('target_date'),
-                data.get('status', 'active')
-            )
-            
-            cursor.execute(query, values)
-            conn.commit()
-            
-            goal_id = cursor.lastrowid
-            
-            cursor.close()
-            conn.close()
-            
-            return jsonify({
-                'message': 'Goal created successfully',
-                'goal_id': goal_id,
-                'goal': data
-            }), 201
-        
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+    
 
 @app.route('/api/plans/recommended', methods=['GET'])
 def get_recommended_plans():
+    logger.info("Fetching recommended workout plans")
     """Get workout plans that align with user's fitness goals"""
     try:
         user_id = request.args.get('user_id', type=int)

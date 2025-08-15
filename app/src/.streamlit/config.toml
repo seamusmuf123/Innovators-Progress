@@ -20,3 +20,6 @@ font="monospace"
 
 [server]
 runOnSave = true
+
+[logger]
+level="info"
