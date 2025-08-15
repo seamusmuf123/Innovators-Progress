@@ -89,7 +89,7 @@ if st.button('Progress App',
     st.session_state['authenticated'] = True
     st.session_state['role'] = 'app'
     st.session_state['first_name'] = 'Progress'
-    st.switch_page('pages/01_World_Bank_Viz.py')
+    st.switch_page('pages/Progress_App.py')
 
 
 
