@@ -163,7 +163,31 @@ def show_maya_page():
                 {"Goal": "Increase bench by 15lbs", "Target": 15, "Week": "Week 1", "Progress Value": 2.5},
                 {"Goal": "Decrease mile time", "Target": 1, "Week": "Week 2", "Progress Value": 0.4},
             ])
+        goal_df = st.session_state['goal_progress_maya']
 
+        # Editable table for Goal, Target, Week, Progress Value (NOT Progress %)
+        editable_cols = [col for col in goal_df.columns if col in ["Goal", "Target", "Week", "Progress Value"]]
+        edited_goal_df = st.data_editor(
+            goal_df[editable_cols],
+            num_rows="dynamic",
+            key="goal_editor_maya"
+        )
+
+        # Always recalculate Progress (%) after edits, handle division by zero and missing values
+        def calc_progress(row):
+            try:
+                if pd.isna(row["Target"]) or row["Target"] == 0:
+                    return 0.0
+                return round((row["Progress Value"] / row["Target"]) * 100, 1)
+            except Exception:
+                return 0.0
+        edited_goal_df["Progress (%)"] = edited_goal_df.apply(calc_progress, axis=1)
+
+        if st.button("Update Goals Table"):
+            st.session_state['goal_progress_maya'] = edited_goal_df
+            st.success("Goals updated!")
+            st.rerun()
+        
 
         # Post Progress for a Goal (adds a new row to the unified table, with 'Create New Goal' option, no deadline)
         st.write("#### Post Progress for a Goal")
@@ -210,36 +234,25 @@ def show_maya_page():
                 st.success(f"Progress posted for {goal_to_use} in {selected_week}!")
                 st.rerun()
 
-        # Allow editing the goals table directly
-        goal_edit_df = st.data_editor(
-            st.session_state['goal_progress_maya'],
-            num_rows="dynamic",
-            key="goal_editor_maya"
-        )
-        
-        # Always calculate Progress (%) and show only one table (no deadline)
-        goal_df = goal_df.copy()
-        goal_df["Progress (%)"] = (goal_df["Progress Value"] / goal_df["Target"] * 100).round(1)
-        if st.button("Update Goals Table", key="update_goals_maya"):
-            st.session_state['goal_progress_maya'] = goal_edit_df
-            st.success("Goals updated!")
-            st.rerun()
-        st.session_state['goal_progress_maya'] = goal_df
-        st.dataframe(goal_df, use_container_width=True, hide_index=True)
+    # Show the up-to-date goals table (with Progress %)
+    st.session_state['goal_progress_maya'] = st.session_state['goal_progress_maya'].copy()
+    st.session_state['goal_progress_maya']["Progress (%)"] = st.session_state['goal_progress_maya'].apply(calc_progress, axis=1)
+    st.dataframe(st.session_state['goal_progress_maya'], use_container_width=True, hide_index=True)
 
         # For plotting, aggregate by Goal and Week (take the latest Progress Value for each pair)
-        chart_df = goal_df.sort_values("Week").drop_duplicates(subset=["Goal", "Week"], keep="last")
-        st.subheader("Your Progress Over Time (All Goals)")
-        if not chart_df.empty:
-            st.line_chart(chart_df.pivot(index='Week', columns='Goal', values='Progress (%)'))
-        else:
-            st.write("No progress data to display.")
+    goal_df = st.session_state['goal_progress_maya']
+    chart_df = goal_df.sort_values("Week").drop_duplicates(subset=["Goal", "Week"], keep="last")
+    st.subheader("Your Progress Over Time (All Goals)")
+    if not chart_df.empty:
+        st.line_chart(chart_df.pivot(index='Week', columns='Goal', values='Progress (%)'))
+    else:
+        st.write("No progress data to display.")
 
-        # 6. Consistency Tracker (Streak)
-        st.subheader("Consistency Tracker")
-        if 'consistency_maya' not in st.session_state:
-            st.session_state['consistency_maya'] = 3  # Example: 3 days in a row
-        st.metric("Current Streak (days)", st.session_state['consistency_maya'])
+    # 6. Consistency Tracker (Streak)
+    st.subheader("Consistency Tracker")
+    if 'consistency_maya' not in st.session_state:
+        st.session_state['consistency_maya'] = 3  # Example: 3 days in a row
+    st.metric("Current Streak (days)", st.session_state['consistency_maya'])
         
 
 def show_alex_page():
