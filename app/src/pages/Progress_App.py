@@ -12,6 +12,7 @@ from modules.nav import SideBarLinks
 API_BASE_URL = "http://localhost:4000/api"
 
 def show_home_page():
+    print("Progress run method")
     """Home page showing app overview and features"""
     st.markdown('<h1 class="main-header">💪 Progress</h1>', unsafe_allow_html=True)
     st.markdown('<h2 style="text-align: center; color: #666;">Data-Driven Personal Fitness App</h2>', unsafe_allow_html=True)
