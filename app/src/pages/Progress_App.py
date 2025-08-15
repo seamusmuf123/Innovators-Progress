@@ -89,18 +89,15 @@ def show_maya_page():
     
     with tab1:
         st.markdown("### 🔐 Login to Workout")
-        
         # Mock login form
         col1, col2 = st.columns(2)
         with col1:
             email = st.text_input("Email:", value="maya@email.com")
             password = st.text_input("Password:", type="password", value="password123")
-        
         with col2:
             st.markdown("#### Quick Stats")
             if st.button("Login & Load Data"):
                 st.success("✅ Login successful!")
-                
                 # Load user data
                 try:
                     response = requests.get(f"{API_BASE_URL}/goals?user_id={user_id}")
@@ -145,7 +142,7 @@ def show_maya_page():
             if cols[-1].button("Delete", key=f"delete_routine_{idx}"):
                 st.session_state['routine_plan_maya'] = routine_df.drop(idx).reset_index(drop=True)
                 st.rerun()
-        # Optionally, allow editing with data_editor as before
+        # Optionally, allow editing
         routine_edit_df = st.data_editor(
             st.session_state['routine_plan_maya'],
             num_rows="dynamic",
@@ -156,7 +153,7 @@ def show_maya_page():
             st.success("Routine updated!")
             st.rerun()
 
-        # 4. Unified Goal Setting & Progress Tracking Table
+        # 4. Goal Setting & Progress Tracking Table
         st.subheader("Set Your Goals and Track Progress")
         if 'goal_progress_maya' not in st.session_state:
             st.session_state['goal_progress_maya'] = pd.DataFrame([
@@ -173,7 +170,7 @@ def show_maya_page():
             key="goal_editor_maya"
         )
 
-        # Always recalculate Progress (%) after edits, handle division by zero and missing values
+        # Always recalculate Progress (%) after edits
         def calc_progress(row):
             try:
                 if pd.isna(row["Target"]) or row["Target"] == 0:
@@ -189,7 +186,7 @@ def show_maya_page():
             st.rerun()
         
 
-        # Post Progress for a Goal (adds a new row to the unified table, with 'Create New Goal' option, no deadline)
+        # Post Progress for a Goal 
         st.write("#### Post Progress for a Goal")
         goal_df = st.session_state['goal_progress_maya']
         # Show goals table with delete buttons
@@ -213,7 +210,6 @@ def show_maya_page():
                 target_to_use = new_target
             else:
                 goal_to_use = selected_goal
-                # Use the first matching row for target
                 goal_row = goal_df[goal_df["Goal"] == selected_goal].iloc[0]
                 target_to_use = goal_row["Target"]
             selected_week = st.text_input("Week (e.g., Week 3)", key="goal_week_maya")
@@ -239,7 +235,7 @@ def show_maya_page():
     st.session_state['goal_progress_maya']["Progress (%)"] = st.session_state['goal_progress_maya'].apply(calc_progress, axis=1)
     st.dataframe(st.session_state['goal_progress_maya'], use_container_width=True, hide_index=True)
 
-        # For plotting, aggregate by Goal and Week (take the latest Progress Value for each pair)
+        # For plotting, aggregate by Goal and Week
     goal_df = st.session_state['goal_progress_maya']
     chart_df = goal_df.sort_values("Week").drop_duplicates(subset=["Goal", "Week"], keep="last")
     st.subheader("Your Progress Over Time (All Goals)")
