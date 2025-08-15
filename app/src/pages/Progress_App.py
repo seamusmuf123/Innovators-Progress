@@ -1,3 +1,5 @@
+import logging
+logger = logging.getLogger(__name__)
 import streamlit as st
 import requests
 import pandas as pd
@@ -5,6 +7,7 @@ import plotly.express as px
 import plotly.graph_objects as go
 from datetime import datetime, timedelta
 import json
+from modules.nav import SideBarLinks
 
 API_BASE_URL = "http://localhost:4000/api"
 
@@ -86,18 +89,15 @@ def show_maya_page():
     
     with tab1:
         st.markdown("### 🔐 Login to Workout")
-        
         # Mock login form
         col1, col2 = st.columns(2)
         with col1:
             email = st.text_input("Email:", value="maya@email.com")
             password = st.text_input("Password:", type="password", value="password123")
-        
         with col2:
             st.markdown("#### Quick Stats")
             if st.button("Login & Load Data"):
                 st.success("✅ Login successful!")
-                
                 # Load user data
                 try:
                     response = requests.get(f"{API_BASE_URL}/goals?user_id={user_id}")
@@ -111,77 +111,154 @@ def show_maya_page():
     with tab2:
         st.markdown("### 📋 Routine Builder & Tracker")
         
-        # Goals section
-        st.subheader("🎯 Your Fitness Goals")
-        try:
-            response = requests.get(f"{API_BASE_URL}/goals?user_id={user_id}")
-            if response.status_code == 200:
-                goals_data = response.json()
-                
-                if goals_data.get('goals'):
-                    for goal in goals_data['goals']:
-                        with st.expander(f"🎯 {goal.get('goal_name', 'Goal')}"):
-                            col1, col2 = st.columns(2)
-                            with col1:
-                                st.write(f"**Task:** {goal.get('task', 'N/A')}")
-                                st.write(f"**Status:** {goal.get('status', 'N/A')}")
-                            with col2:
-                                st.write(f"**Days Remaining:** {goal.get('days_remaining', 'N/A')}")
-                                st.progress(0.7)  # Mock progress
-                else:
-                    st.info("No goals found. Create your first goal!")
-        except:
-            st.info("Mock data: 2 active goals")
+        # 1. Gym Equipment Table
+        st.subheader("Available Gym Equipment")
+        equipment_data = {
+            "Equipment": ["Treadmill", "Bench Press", "Dumbbells", "Pull-up Bar", "Rowing Machine"],
+            "Available": ["Yes", "No", "Yes", "Yes", "No"],
+            "Location": ["Cardio Zone", "Strength Area", "Strength Area", "Strength Area", "Cardio Zone"]
+        }
+        equipment_df = pd.DataFrame(equipment_data)
+        st.dataframe(equipment_df, use_container_width=True, key="equipment_table_maya")
+
+        # 2. Weekly Reminder
+        st.info("Stay consistent! Remember to log your workouts this week.")
+
+        # 3. Routine Planning Table
+        df = pd.DataFrame({
+    "Day": [f"Day {i+1}" for i in range(30)],
+    "Workout": ["Exercise"]*30,
+    "Sets": [3]*30,
+    "Reps": [10]*30,
+    "Notes": [f"Note {i+1}" for i in range(30)]
+})
+
+        st.dataframe(df, use_container_width=True, height=400)
         
-        # Create new goal
-        st.subheader("➕ Create New Goal")
-        with st.form("new_goal"):
-            goal_name = st.text_input("Goal Name:")
-            task = st.text_area("Task Description:")
-            target_date = st.date_input("Target Date:")
-            
-            if st.form_submit_button("Create Goal"):
-                if goal_name and task:
-                    st.success("Goal created successfully!")
-                else:
-                    st.error("Please fill in all fields")
+        st.subheader("Routine Planning")
+        if 'routine_plan_maya' not in st.session_state:
+            st.session_state['routine_plan_maya'] = pd.DataFrame([
+                {"Day": "Monday", "Workout": "Bench Press", "Sets": 3, "Reps": 10},
+                {"Day": "Wednesday", "Workout": "Running", "Sets": 1, "Reps": 20},
+                {"Day": "Friday", "Workout": "Pull-ups", "Sets": 4, "Reps": 8},
+            ])
+        routine_df = st.session_state['routine_plan_maya']
+        # Show routine table with delete buttons
+        for idx, row in routine_df.iterrows():
+            cols = st.columns(len(row) + 1)
+            for i, (col, val) in enumerate(row.items()):
+                cols[i].write(f"**{col}:** {val}")
+            if cols[-1].button("Delete", key=f"delete_routine_{idx}"):
+                st.session_state['routine_plan_maya'] = routine_df.drop(idx).reset_index(drop=True)
+                st.rerun()
+        # Optionally, allow editing
+        routine_edit_df = st.data_editor(
+            st.session_state['routine_plan_maya'],
+            num_rows="dynamic",
+            key="routine_editor_maya"
+        )
+        if st.button("Update Routine", key="update_routine_maya"):
+            st.session_state['routine_plan_maya'] = routine_edit_df
+            st.success("Routine updated!")
+            st.rerun()
+
+        # 4. Goal Setting & Progress Tracking Table
+        st.subheader("Set Your Goals and Track Progress")
+        if 'goal_progress_maya' not in st.session_state:
+            st.session_state['goal_progress_maya'] = pd.DataFrame([
+                {"Goal": "Increase bench by 15lbs", "Target": 15, "Week": "Week 1", "Progress Value": 2.5},
+                {"Goal": "Decrease mile time", "Target": 1, "Week": "Week 2", "Progress Value": 0.4},
+            ])
+        goal_df = st.session_state['goal_progress_maya']
+
+        # Editable table for Goal, Target, Week, Progress Value (NOT Progress %)
+        editable_cols = [col for col in goal_df.columns if col in ["Goal", "Target", "Week", "Progress Value"]]
+        edited_goal_df = st.data_editor(
+            goal_df[editable_cols],
+            num_rows="dynamic",
+            key="goal_editor_maya"
+        )
+
+        # Always recalculate Progress (%) after edits
+        def calc_progress(row):
+            try:
+                if pd.isna(row["Target"]) or row["Target"] == 0:
+                    return 0.0
+                return round((row["Progress Value"] / row["Target"]) * 100, 1)
+            except Exception:
+                return 0.0
+        edited_goal_df["Progress (%)"] = edited_goal_df.apply(calc_progress, axis=1)
+
+        if st.button("Update Goals Table"):
+            st.session_state['goal_progress_maya'] = edited_goal_df
+            st.success("Goals updated!")
+            st.rerun()
         
-        # Available equipment
-        st.subheader("🏋️ Available Equipment")
-        try:
-            response = requests.get(f"{API_BASE_URL}/equipment/available?user_id={user_id}")
-            if response.status_code == 200:
-                equipment_data = response.json()
-                
-                if equipment_data.get('equipment'):
-                    for equipment in equipment_data['equipment']:
-                        st.write(f"✅ {equipment.get('equipment_name')} - {equipment.get('location')}")
-                else:
-                    st.info("No equipment data available")
-        except:
-            st.info("Mock data: Treadmill #1, Bench Press #1 available")
+
+        # Post Progress for a Goal 
+        st.write("#### Post Progress for a Goal")
+        goal_df = st.session_state['goal_progress_maya']
+        # Show goals table with delete buttons
+        for idx, row in goal_df.iterrows():
+            cols = st.columns(len(row) + 1)
+            for i, (col, val) in enumerate(row.items()):
+                cols[i].write(f"**{col}:** {val}")
+            if cols[-1].button("Delete", key=f"delete_goal_{idx}"):
+                st.session_state['goal_progress_maya'] = goal_df.drop(idx).reset_index(drop=True)
+                st.rerun()
+        goal_options = goal_df["Goal"].unique().tolist() + ["Create New Goal"]
+        # Use session state to remember the last selected goal
+        if 'selected_goal_maya' not in st.session_state:
+            st.session_state['selected_goal_maya'] = "Create New Goal"
+        with st.form("post_progress_form_maya"):
+            selected_goal = st.selectbox("Select Goal", goal_options, index=goal_options.index(st.session_state['selected_goal_maya']) if st.session_state['selected_goal_maya'] in goal_options else len(goal_options)-1, key="goal_selectbox_maya")
+            if selected_goal == "Create New Goal":
+                new_goal = st.text_input("New Goal Name (editable)", key="new_goal_name_maya")
+                new_target = st.number_input("Target (e.g., lbs to increase)", min_value=0.0, step=0.1, key="new_goal_target_maya")
+                goal_to_use = new_goal
+                target_to_use = new_target
+            else:
+                goal_to_use = selected_goal
+                goal_row = goal_df[goal_df["Goal"] == selected_goal].iloc[0]
+                target_to_use = goal_row["Target"]
+            selected_week = st.text_input("Week (e.g., Week 3)", key="goal_week_maya")
+            progress_value = st.number_input("Progress Value (e.g., lbs increased)", min_value=0.0, step=0.1, key="goal_progress_value_maya")
+            submitted = st.form_submit_button("Post Progress")
+            if submitted and goal_to_use and selected_week:
+                new_row = {
+                    "Goal": goal_to_use,
+                    "Target": target_to_use,
+                    "Week": selected_week,
+                    "Progress Value": progress_value
+                }
+                st.session_state['goal_progress_maya'] = pd.concat([
+                    st.session_state['goal_progress_maya'],
+                    pd.DataFrame([new_row])
+                ], ignore_index=True)
+                st.session_state['selected_goal_maya'] = "Create New Goal"  # Reset to allow immediate new goal
+                st.success(f"Progress posted for {goal_to_use} in {selected_week}!")
+                st.rerun()
+
+    # Show the up-to-date goals table (with Progress %)
+    st.session_state['goal_progress_maya'] = st.session_state['goal_progress_maya'].copy()
+    st.session_state['goal_progress_maya']["Progress (%)"] = st.session_state['goal_progress_maya'].apply(calc_progress, axis=1)
+    st.dataframe(st.session_state['goal_progress_maya'], use_container_width=True, hide_index=True)
+
+        # For plotting, aggregate by Goal and Week
+    goal_df = st.session_state['goal_progress_maya']
+    chart_df = goal_df.sort_values("Week").drop_duplicates(subset=["Goal", "Week"], keep="last")
+    st.subheader("Your Progress Over Time (All Goals)")
+    if not chart_df.empty:
+        st.line_chart(chart_df.pivot(index='Week', columns='Goal', values='Progress (%)'))
+    else:
+        st.write("No progress data to display.")
+
+    # 6. Consistency Tracker (Streak)
+    st.subheader("Consistency Tracker")
+    if 'consistency_maya' not in st.session_state:
+        st.session_state['consistency_maya'] = 3  # Example: 3 days in a row
+    st.metric("Current Streak (days)", st.session_state['consistency_maya'])
         
-        # Progress tracker
-        st.subheader("📈 Progress Tracker")
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            # Mock progress chart
-            progress_data = pd.DataFrame({
-                'Week': ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                'Progress': [20, 35, 50, 65]
-            })
-            fig = px.line(progress_data, x='Week', y='Progress', title='Weekly Progress')
-            st.plotly_chart(fig, use_container_width=True)
-        
-        with col2:
-            # Mock consistency tracker
-            consistency_data = pd.DataFrame({
-                'Day': ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                'Workouts': [1, 1, 0, 1, 1, 0, 1]
-            })
-            fig = px.bar(consistency_data, x='Day', y='Workouts', title='Weekly Consistency')
-            st.plotly_chart(fig, use_container_width=True)
 
 def show_alex_page():
     """Alex LaFrance - Desk Attendant Interface (Wireframes 5 & 6)"""
