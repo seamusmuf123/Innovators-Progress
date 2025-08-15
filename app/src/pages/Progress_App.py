@@ -144,7 +144,7 @@ def show_maya_page():
                 cols[i].write(f"**{col}:** {val}")
             if cols[-1].button("Delete", key=f"delete_routine_{idx}"):
                 st.session_state['routine_plan_maya'] = routine_df.drop(idx).reset_index(drop=True)
-                st.experimental_rerun()
+                st.rerun()
         # Optionally, allow editing with data_editor as before
         routine_edit_df = st.data_editor(
             st.session_state['routine_plan_maya'],
@@ -174,7 +174,7 @@ def show_maya_page():
                 cols[i].write(f"**{col}:** {val}")
             if cols[-1].button("Delete", key=f"delete_goal_{idx}"):
                 st.session_state['goal_progress_maya'] = goal_df.drop(idx).reset_index(drop=True)
-                st.experimental_rerun()
+                st.rerun()
         goal_options = goal_df["Goal"].unique().tolist() + ["Create New Goal"]
         with st.form("post_progress_form_maya"):
             selected_goal = st.selectbox("Select Goal", goal_options)
