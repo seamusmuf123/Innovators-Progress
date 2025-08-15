@@ -134,13 +134,28 @@ def show_maya_page():
 })
 
         st.dataframe(df, use_container_width=True, height=400)
-        
+
         st.subheader("Routine Planning")
         if 'routine_plan_maya' not in st.session_state:
+            # Add 30 example rows for routine planning
+            days = [
+                "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+            ]
+            workouts = [
+                "Bench Press", "Running", "Pull-ups", "Squats", "Deadlift", "Cycling", "Yoga",
+                "Push-ups", "Plank", "Rowing", "Jump Rope", "Lunges", "Burpees", "Box Jumps",
+                "Dumbbell Curl", "Tricep Dip", "Lat Pulldown", "Shoulder Press", "Mountain Climbers",
+                "Leg Press", "Chest Fly", "Russian Twist", "Step-ups", "Hamstring Curl", "Calf Raise",
+                "Crunches", "Back Extension", "Farmer's Walk", "Sled Push", "Battle Ropes", "Wall Sit"
+            ]
             st.session_state['routine_plan_maya'] = pd.DataFrame([
-                {"Day": "Monday", "Workout": "Bench Press", "Sets": 3, "Reps": 10},
-                {"Day": "Wednesday", "Workout": "Running", "Sets": 1, "Reps": 20},
-                {"Day": "Friday", "Workout": "Pull-ups", "Sets": 4, "Reps": 8},
+                {
+                    "Day": days[i % 7],
+                    "Workout": workouts[i],
+                    "Sets": 3 + (i % 3),
+                    "Reps": 8 + (i % 5)
+                }
+                for i in range(30)
             ])
         routine_df = st.session_state['routine_plan_maya']
         # Show routine table with delete buttons
@@ -165,9 +180,24 @@ def show_maya_page():
         # 4. Goal Setting & Progress Tracking Table
         st.subheader("Set Your Goals and Track Progress")
         if 'goal_progress_maya' not in st.session_state:
+            # Add 30 example rows for goals
+            goal_names = [
+                "Increase bench by 15lbs", "Decrease mile time", "Run 5k under 25min", "Lose 5lbs", "Do 10 pull-ups",
+                "Squat 200lbs", "Deadlift 250lbs", "Cycle 50 miles", "Swim 1 mile", "Hold plank 2 min",
+                "Complete HIIT session", "Improve flexibility", "Master handstand", "Reduce body fat 2%",
+                "Walk 10,000 steps", "Climb 20 flights", "Row 2k under 8min", "Jump rope 500 times",
+                "Do 50 push-ups", "Stretch daily", "Track calories", "Sleep 8 hours", "Drink 2L water",
+                "Meal prep weekly", "Try new sport", "Join group class", "Log workouts daily",
+                "Increase vertical jump", "Improve balance", "Reduce resting HR"
+            ]
             st.session_state['goal_progress_maya'] = pd.DataFrame([
-                {"Goal": "Increase bench by 15lbs", "Target": 15, "Week": "Week 1", "Progress Value": 2.5},
-                {"Goal": "Decrease mile time", "Target": 1, "Week": "Week 2", "Progress Value": 0.4},
+                {
+                    "Goal": goal_names[i],
+                    "Target": round(5 + i * 0.5, 1),
+                    "Week": f"Week {(i % 10) + 1}",
+                    "Progress Value": round((5 + i * 0.5) * (0.1 + 0.03 * (i % 10)), 2)
+                }
+                for i in range(30)
             ])
         goal_df = st.session_state['goal_progress_maya']
 
