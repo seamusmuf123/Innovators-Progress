@@ -154,6 +154,7 @@ def show_maya_page():
         if st.button("Update Routine", key="update_routine_maya"):
             st.session_state['routine_plan_maya'] = routine_edit_df
             st.success("Routine updated!")
+            st.rerun()
 
         # 4. Unified Goal Setting & Progress Tracking Table
         st.subheader("Set Your Goals and Track Progress")
@@ -209,9 +210,20 @@ def show_maya_page():
                 st.success(f"Progress posted for {goal_to_use} in {selected_week}!")
                 st.rerun()
 
+        # Allow editing the goals table directly
+        goal_edit_df = st.data_editor(
+            st.session_state['goal_progress_maya'],
+            num_rows="dynamic",
+            key="goal_editor_maya"
+        )
+        
         # Always calculate Progress (%) and show only one table (no deadline)
         goal_df = goal_df.copy()
         goal_df["Progress (%)"] = (goal_df["Progress Value"] / goal_df["Target"] * 100).round(1)
+        if st.button("Update Goals Table", key="update_goals_maya"):
+            st.session_state['goal_progress_maya'] = goal_edit_df
+            st.success("Goals updated!")
+            st.rerun()
         st.session_state['goal_progress_maya'] = goal_df
         st.dataframe(goal_df, use_container_width=True, hide_index=True)
 
