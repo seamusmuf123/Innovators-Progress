@@ -176,11 +176,14 @@ def show_maya_page():
                 st.session_state['goal_progress_maya'] = goal_df.drop(idx).reset_index(drop=True)
                 st.rerun()
         goal_options = goal_df["Goal"].unique().tolist() + ["Create New Goal"]
+        # Use session state to remember the last selected goal
+        if 'selected_goal_maya' not in st.session_state:
+            st.session_state['selected_goal_maya'] = "Create New Goal"
         with st.form("post_progress_form_maya"):
-            selected_goal = st.selectbox("Select Goal", goal_options)
+            selected_goal = st.selectbox("Select Goal", goal_options, index=goal_options.index(st.session_state['selected_goal_maya']) if st.session_state['selected_goal_maya'] in goal_options else len(goal_options)-1, key="goal_selectbox_maya")
             if selected_goal == "Create New Goal":
-                new_goal = st.text_input("New Goal Name (editable)")
-                new_target = st.number_input("Target (e.g., lbs to increase)", min_value=0.0, step=0.1)
+                new_goal = st.text_input("New Goal Name (editable)", key="new_goal_name_maya")
+                new_target = st.number_input("Target (e.g., lbs to increase)", min_value=0.0, step=0.1, key="new_goal_target_maya")
                 goal_to_use = new_goal
                 target_to_use = new_target
             else:
@@ -188,8 +191,8 @@ def show_maya_page():
                 # Use the first matching row for target
                 goal_row = goal_df[goal_df["Goal"] == selected_goal].iloc[0]
                 target_to_use = goal_row["Target"]
-            selected_week = st.text_input("Week (e.g., Week 3)")
-            progress_value = st.number_input("Progress Value (e.g., lbs increased)", min_value=0.0, step=0.1)
+            selected_week = st.text_input("Week (e.g., Week 3)", key="goal_week_maya")
+            progress_value = st.number_input("Progress Value (e.g., lbs increased)", min_value=0.0, step=0.1, key="goal_progress_value_maya")
             submitted = st.form_submit_button("Post Progress")
             if submitted and goal_to_use and selected_week:
                 new_row = {
@@ -202,8 +205,9 @@ def show_maya_page():
                     st.session_state['goal_progress_maya'],
                     pd.DataFrame([new_row])
                 ], ignore_index=True)
+                st.session_state['selected_goal_maya'] = "Create New Goal"  # Reset to allow immediate new goal
                 st.success(f"Progress posted for {goal_to_use} in {selected_week}!")
-                goal_df = st.session_state['goal_progress_maya']
+                st.rerun()
 
         # Always calculate Progress (%) and show only one table (no deadline)
         goal_df = goal_df.copy()
