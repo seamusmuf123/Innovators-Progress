@@ -848,6 +848,327 @@ def get_equipment_utilization():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ============================================================================
+# EQUIPMENT MAINTENANCE ENDPOINTS
+# ============================================================================
+
+@app.route('/api/equipment', methods=['GET', 'POST', 'PUT', 'DELETE'])
+def manage_equipment():
+    """CRUD operations for equipment maintenance"""
+    try:
+        if request.method == 'GET':
+            # Get all equipment
+            if MOCK_MODE:
+                return jsonify({
+                    'equipment': MOCK_DATA['equipment'],
+                    'count': len(MOCK_DATA['equipment']),
+                    'source': 'mock_mode'
+                })
+            
+            conn = get_db_connection()
+            if not conn:
+                return jsonify({'error': 'Database connection failed'}), 500
+            
+            cursor = conn.cursor(dictionary=True)
+            query = """
+            SELECT equip_ID, equipment_name, `condition`, requestForm, 
+                   last_maintenance, next_maintenance, location, created_at
+            FROM Equipment_Maintenance 
+            ORDER BY location, equipment_name
+            """
+            
+            cursor.execute(query)
+            equipment = cursor.fetchall()
+            cursor.close()
+            conn.close()
+            
+            return jsonify({
+                'equipment': equipment,
+                'count': len(equipment),
+                'source': 'database'
+            })
+            
+        elif request.method == 'POST':
+            # Add new equipment
+            data = request.get_json()
+            required_fields = ['equipment_name', 'location']
+            
+            if not all(field in data for field in required_fields):
+                return jsonify({'error': 'Missing required fields'}), 400
+            
+            if MOCK_MODE:
+                new_equipment = {
+                    'equip_ID': len(MOCK_DATA['equipment']) + 1,
+                    'equipment_name': data['equipment_name'],
+                    'condition': data.get('condition', 'available'),
+                    'location': data['location'],
+                    'requestForm': data.get('requestForm'),
+                    'last_maintenance': data.get('last_maintenance'),
+                    'next_maintenance': data.get('next_maintenance')
+                }
+                MOCK_DATA['equipment'].append(new_equipment)
+                return jsonify({
+                    'message': 'Equipment added successfully (mock mode)',
+                    'equipment': new_equipment
+                }), 201
+            
+            conn = get_db_connection()
+            if not conn:
+                return jsonify({'error': 'Database connection failed'}), 500
+            
+            cursor = conn.cursor(dictionary=True)
+            query = """
+            INSERT INTO Equipment_Maintenance 
+            (equipment_name, `condition`, requestForm, last_maintenance, next_maintenance, location)
+            VALUES (%s, %s, %s, %s, %s, %s)
+            """
+            
+            values = (
+                data['equipment_name'],
+                data.get('condition', 'available'),
+                data.get('requestForm'),
+                data.get('last_maintenance'),
+                data.get('next_maintenance'),
+                data['location']
+            )
+            
+            cursor.execute(query, values)
+            conn.commit()
+            equipment_id = cursor.lastrowid
+            
+            cursor.close()
+            conn.close()
+            
+            return jsonify({
+                'message': 'Equipment added successfully',
+                'equipment_id': equipment_id
+            }), 201
+            
+        elif request.method == 'PUT':
+            # Update equipment
+            data = request.get_json()
+            equipment_id = data.get('equip_ID')
+            
+            if not equipment_id:
+                return jsonify({'error': 'equip_ID required'}), 400
+            
+            if MOCK_MODE:
+                for eq in MOCK_DATA['equipment']:
+                    if eq['equip_ID'] == equipment_id:
+                        eq.update(data)
+                        return jsonify({
+                            'message': 'Equipment updated successfully (mock mode)',
+                            'equipment': eq
+                        })
+                return jsonify({'error': 'Equipment not found'}), 404
+            
+            conn = get_db_connection()
+            if not conn:
+                return jsonify({'error': 'Database connection failed'}), 500
+            
+            cursor = conn.cursor(dictionary=True)
+            query = """
+            UPDATE Equipment_Maintenance 
+            SET equipment_name = %s, `condition` = %s, requestForm = %s,
+                last_maintenance = %s, next_maintenance = %s, location = %s
+            WHERE equip_ID = %s
+            """
+            
+            values = (
+                data.get('equipment_name'),
+                data.get('condition'),
+                data.get('requestForm'),
+                data.get('last_maintenance'),
+                data.get('next_maintenance'),
+                data.get('location'),
+                equipment_id
+            )
+            
+            cursor.execute(query, values)
+            conn.commit()
+            
+            if cursor.rowcount == 0:
+                cursor.close()
+                conn.close()
+                return jsonify({'error': 'Equipment not found'}), 404
+            
+            cursor.close()
+            conn.close()
+            
+            return jsonify({'message': 'Equipment updated successfully'})
+            
+        elif request.method == 'DELETE':
+            # Delete equipment
+            equipment_id = request.args.get('equip_ID', type=int)
+            
+            if not equipment_id:
+                return jsonify({'error': 'equip_ID parameter required'}), 400
+            
+            if MOCK_MODE:
+                MOCK_DATA['equipment'] = [eq for eq in MOCK_DATA['equipment'] if eq['equip_ID'] != equipment_id]
+                return jsonify({'message': 'Equipment deleted successfully (mock mode)'})
+            
+            conn = get_db_connection()
+            if not conn:
+                return jsonify({'error': 'Database connection failed'}), 500
+            
+            cursor = conn.cursor()
+            query = "DELETE FROM Equipment_Maintenance WHERE equip_ID = %s"
+            cursor.execute(query, (equipment_id,))
+            conn.commit()
+            
+            if cursor.rowcount == 0:
+                cursor.close()
+                conn.close()
+                return jsonify({'error': 'Equipment not found'}), 404
+            
+            cursor.close()
+            conn.close()
+            
+            return jsonify({'message': 'Equipment deleted successfully'})
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/equipment/<int:equipment_id>', methods=['GET'])
+def get_equipment_by_id(equipment_id):
+    """Get specific equipment by ID"""
+    try:
+        if MOCK_MODE:
+            equipment = next((eq for eq in MOCK_DATA['equipment'] if eq['equip_ID'] == equipment_id), None)
+            if not equipment:
+                return jsonify({'error': 'Equipment not found'}), 404
+            return jsonify({
+                'equipment': equipment,
+                'source': 'mock_mode'
+            })
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        cursor = conn.cursor(dictionary=True)
+        query = """
+        SELECT equip_ID, equipment_name, `condition`, requestForm, 
+               last_maintenance, next_maintenance, location, created_at
+        FROM Equipment_Maintenance 
+        WHERE equip_ID = %s
+        """
+        
+        cursor.execute(query, (equipment_id,))
+        equipment = cursor.fetchone()
+        
+        cursor.close()
+        conn.close()
+        
+        if not equipment:
+            return jsonify({'error': 'Equipment not found'}), 404
+        
+        return jsonify({
+            'equipment': equipment,
+            'source': 'database'
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/equipment/status', methods=['PUT'])
+def update_equipment_status():
+    """Update equipment status (available, maintenance, out_of_order)"""
+    try:
+        data = request.get_json()
+        equipment_id = data.get('equip_ID')
+        new_status = data.get('condition')
+        
+        if not equipment_id or not new_status:
+            return jsonify({'error': 'equip_ID and condition required'}), 400
+        
+        if new_status not in ['available', 'maintenance', 'out_of_order']:
+            return jsonify({'error': 'Invalid condition value'}), 400
+        
+        if MOCK_MODE:
+            for eq in MOCK_DATA['equipment']:
+                if eq['equip_ID'] == equipment_id:
+                    eq['condition'] = new_status
+                    return jsonify({
+                        'message': 'Equipment status updated successfully (mock mode)',
+                        'equipment': eq
+                    })
+            return jsonify({'error': 'Equipment not found'}), 404
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        cursor = conn.cursor(dictionary=True)
+        query = "UPDATE Equipment_Maintenance SET `condition` = %s WHERE equip_ID = %s"
+        cursor.execute(query, (new_status, equipment_id))
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            cursor.close()
+            conn.close()
+            return jsonify({'error': 'Equipment not found'}), 404
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({'message': 'Equipment status updated successfully'})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/equipment/maintenance-request', methods=['POST'])
+def create_maintenance_request():
+    """Create a maintenance request for equipment"""
+    try:
+        data = request.get_json()
+        equipment_id = data.get('equip_ID')
+        request_form = data.get('requestForm')
+        description = data.get('description')
+        
+        if not equipment_id or not request_form or not description:
+            return jsonify({'error': 'equip_ID, requestForm, and description required'}), 400
+        
+        if MOCK_MODE:
+            # In mock mode, just update the equipment status
+            for eq in MOCK_DATA['equipment']:
+                if eq['equip_ID'] == equipment_id:
+                    eq['condition'] = 'maintenance'
+                    eq['requestForm'] = request_form
+                    return jsonify({
+                        'message': 'Maintenance request created successfully (mock mode)',
+                        'equipment':  eq
+                    })
+            return jsonify({'error': 'Equipment not found'}), 404
+        
+        conn = get_db_connection()
+        if not conn:
+            return jsonify({'error': 'Database connection failed'}), 500
+        
+        cursor = conn.cursor(dictionary=True)
+        query = """
+        UPDATE Equipment_Maintenance 
+        SET `condition` = 'maintenance', requestForm = %s
+        WHERE equip_ID = %s
+        """
+        
+        cursor.execute(query, (request_form, description))
+        conn.commit()
+        
+        if cursor.rowcount == 0:
+            cursor.close()
+            conn.close()
+            return jsonify({'error': 'Equipment not found'}), 404
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify({'message': 'Maintenance request created successfully'})
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     print("🚀 Progress Fitness App Backend Starting...")
     print(f"📊 Mode: {'Mock Data' if MOCK_MODE else 'Database'}")
