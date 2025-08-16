@@ -293,6 +293,37 @@ VALUES
     (502, 'General', '2024-01-01', '2024-12-31', 1200),
     (503, 'Gold', '2025-06-01', '2026-05-31', 300);
 
+-- MEMBERSHIP (add 27 more -> total 30)
+INSERT INTO Membership (membership_ID, status, start_date, end_date, billing)
+VALUES
+    (504, 'Basic', '2025-02-01', '2026-01-31', 50),
+    (505, 'Silver', '2025-03-01', '2026-02-28', 75),
+    (506, 'Bronze', '2025-04-01', '2026-03-31', 60),
+    (507, 'Platinum', '2025-05-01', '2026-04-30', 200),
+    (508, 'Trial', '2025-06-01', '2025-06-30', 0),
+    (509, 'Student', '2025-01-15', '2026-01-14', 40),
+    (510, 'Corporate', '2025-02-15', '2026-02-14', 150),
+    (511, 'Family', '2025-03-15', '2026-03-14', 180),
+    (512, 'Monthly', '2025-04-01', '2025-04-30', 25),
+    (513, 'Quarterly', '2025-01-01', '2025-03-31', 70),
+    (514, 'Annual', '2025-07-01', '2026-06-30', 120),
+    (515, 'Weekend', '2025-08-01', '2026-07-31', 45),
+    (516, 'Off-peak', '2025-09-01', '2026-08-31', 55),
+    (517, 'VIP', '2025-10-01', '2026-09-30', 250),
+    (518, 'Senior', '2025-11-01', '2026-10-31', 35),
+    (519, 'Military', '2025-12-01', '2026-11-30', 30),
+    (520, 'Seasonal', '2025-06-01', '2025-09-01', 80),
+    (521, 'Weekend Plus', '2025-01-01', '2025-12-31', 65),
+    (522, 'Couples', '2025-02-01', '2026-01-31', 140),
+    (523, 'Young Adult', '2025-03-01', '2026-02-28', 48),
+    (524, 'Rehab', '2025-04-01', '2026-03-31', 90),
+    (525, 'Community', '2025-05-01', '2026-04-30', 20),
+    (526, 'Alumni', '2025-06-01', '2026-05-31', 65),
+    (527, 'Founders', '2025-07-01', '2026-06-30', 300),
+    (528, 'Promo', '2025-08-01', '2026-07-31', 10),
+    (529, 'Flex', '2025-09-01', '2026-08-31', 95),
+    (530, 'Lifetime', '2025-01-01', '9999-12-31', 1000);
+
 
 -- REPORT
 INSERT INTO Report (report_ID, title, checklist, completed_goals, uncompleted_goals, work_efficiency, time_based_summary)
@@ -367,6 +398,33 @@ VALUES
     (701, 'Fitbit Sync'),
     (702, 'Apple Health'),
     (703, 'Google Fit');
+    (704, 'Garmin Connect'),
+    (705, 'Samsung Health'),
+    (706, 'Polar Flow'),
+    (707, 'Strava Link'),
+    (708, 'WHOOP Sync'),
+    (709, 'Oura Ring'),
+    (710, 'Withings Health'),
+    (711, 'Xiaomi Fit'),
+    (712, 'Huawei Health'),
+    (713, 'Amazfit Sync'),
+    (714, 'Suunto App'),
+    (715, 'Peloton Account'),
+    (716, 'Xbox Fitness'),
+    (717, 'Google Nest Hub'),
+    (718, 'Apple Watch'),
+    (719, 'Fitbit Versa'),
+    (720, 'Fitbit Charge'),
+    (721, 'Garmin Forerunner'),
+    (722, 'Mobvoi TicWatch'),
+    (723, 'Echelon Bike'),
+    (724, 'NordicTrack'),
+    (725, 'Hydrow'),
+    (726, 'Mirror Workout'),
+    (727, 'Tempo Studio'),
+    (728, 'Therabody Device'),
+    (729, 'Beurer Monitor'),
+    (730, 'Empatica Sensor');
 
 
 -- ANALYST
