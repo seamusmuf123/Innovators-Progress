@@ -1138,7 +1138,7 @@ def create_maintenance_request():
                     eq['requestForm'] = request_form
                     return jsonify({
                         'message': 'Maintenance request created successfully (mock mode)',
-                        'equipment':  eq
+                        'source': 'mock_mode'
                     })
             return jsonify({'error': 'Equipment not found'}), 404
         
