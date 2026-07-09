@@ -34,7 +34,7 @@ services:
     container_name: progress-mysql-db
     hostname: db
     environment:
-      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_ROOT_PASSWORD=Mufarinya2027@
       - MYSQL_DATABASE=progress
       - MYSQL_USER=progress_user
       - MYSQL_PASSWORD=progress_pass
@@ -43,7 +43,6 @@ services:
       - "mysql_data:/var/lib/mysql"
     ports:
       - 3200:3306
-    command: --default-authentication-plugin=mysql_native_password
 
 volumes:
   mysql_data:

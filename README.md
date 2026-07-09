@@ -1,108 +1,58 @@
-# Summer 2 2025 CS 3200 Project Template
+Project summary — what we set out to do
+This repo is a Streamlit frontend + Flask REST API + MySQL template used for course work and experimentation. The main objective was to make the Streamlit pages persistent (Goals / Progress) by exposing and using REST endpoints and a MySQL schema, plus add administrative pages and stabilize the front-end interactions. Over the session we implemented backend endpoints, seeded the DB, added and fixed Streamlit pages, and resolved multiple runtime issues caused by duplicated widgets and incompatible Streamlit calls.
 
-This is a template repo CS 3200 Summer 2 2025 Course Project. 
+High-level changes performed
+Implemented many Flask CRUD endpoints (Goals, Plans, Reports, Analysis_Team, System, User_Device, etc.) inside the api backend.
+Seeded my.sql with many sample rows (including ~30 rows for Goal) so the UI has data to display.
 
-It includes most of the infrastructure setup (containers), sample databases, and example UI pages. Explore it fully and ask questions!
+Created/updated Streamlit pages in pages:
+Login (40_User_Home.py), Goals UI (41_User_Goal.py), multiple admin pages (20_Admin_Home.py, 22_Analyst_Team.py, 23_Reports.py, 24_Systems.py, 25_User_Devices.py) and helpers.
+Added a small api_client.py helper and nav.py for sidebar navigation.
+Fixed multiple Streamlit runtime issues:
+Removed duplicated widget creation and multiple SideBarLinks() calls.
+Replaced st.experimental_rerun() / st.rerun() usages with in-place placeholders or safe refresh patterns.
+Removed unsupported kwargs on st.form_submit_button() (some Streamlit versions disallow key=).
+Added explicit key= arguments to text inputs/selectboxes/button widgets when needed to avoid auto-ID collisions.
+Verified edits with local Python compile checks (py -3 -m py_compile) for updated pages.
 
-## Prerequisites
+Files changed / added (concise)
+api/backend/... (many route files) — Added/extended CRUD endpoints for Goals, Plans, Reports, Analysis_Team, System, User_Device and other nested resources (no DB schema changes).
+my.sql — Seed data added (Goal table and many others).
+20_Admin_Home.py — Admin landing page with navigation buttons to admin pages.
+22_Analyst_Team.py — Admin page for Analysts; cleaned duplicate UI; placeholder refresh.
+23_Reports.py — Reports admin page; switched rerun -> placeholder, added keys.
+24_Systems.py — Systems admin page; switched rerun -> placeholder, added keys.
+25_User_Devices.py — User Devices admin page; removed duplicated blocks, added placeholder refresh and keys.
+40_User_Home.py — Login form; sets st.session_state user attributes.
+41_User_Goal.py — Goals CRUD UI (in-session) with charting; bound sample goals to logged-in user_ID.
+nav.py — Sidebar link generation (RBAC based) — inspected and left intact except ensuring single invocation usage.
+api_client.py — API helper functions (GET/POST/PUT/DELETE) used by admin pages.
+Implementation notes and patterns
 
-- A GitHub Account
-- A terminal-based git client or GUI Git client such as GitHub Desktop or the Git plugin for VSCode.
-- VSCode with the Python Plugin installed
-- A distribution of Python running on your laptop. The distribution supported by the course is Anaconda or Miniconda.
-  - Create a new Python 3.11 environment in conda named `db-proj` by running:  
-     ```bash
-     conda create -n db-proj python=3.11
-     ```
-  - Install the Python dependencies listed in `api/requirements.txt` and `app/src/requirements.txt` into your local Python environment. You can do this by running `pip install -r requirements.txt` in each respective directory.
+Backend:
+Flask Blueprints per resource; routes use db.get_db().cursor() and parameterized SQL. Endpoints were added to map to the DB schema (Goal columns: user_ID, goal_name, task, tracking, records, reminders).
+No database schema changes were made — we conformed to the explicit constraint.
 
-## Structure of the Repo
+Frontend (Streamlit):
+Use st.session_state to persist logged-in user and page-scoped state.
+Avoid duplicated widget creation (StreamlitDuplicateElementId). Use key= on widgets when needed.
+Avoid st.experimental_rerun() where unavailable. Instead, refresh a st.empty() placeholder in-place after create/update/delete actions.
+Navigation: SideBarLinks() builds RBAC-aware sidebar links; call it only once per page.
+Dev / ops:
+Docker Compose used to run app (Streamlit), api (Flask), and mysql_db. We used detached runs (docker compose up -d) during testing.
 
-- The repo is organized into five main directories:
-  - `./app` - the Streamlit app
-  - `./api` - the Flask REST API
-  - `./database-files` - SQL scripts to initialize the MySQL database
-  - `./datasets` - folder for storing datasets
-
-- The repo also contains a `docker-compose.yaml` file that is used to set up the Docker containers for the front end app, the REST API, and MySQL database. 
-
-## Suggestion for Learning the Project Code Base
-
-If you are not familiar with web app development, this code base might be confusing. But don't worry, we'll get through it together. Here are some suggestions for learning the code base:
-
-1. Have two versions of the template repo - one for you to individually explore and learn and another for your team's project implementation.
-1. Start by exploring the `./app` directory. This is where the Streamlit app is located. The Streamlit app is a Python-based web app that is used to interact with the user. It's a great way to build a simple web app without having to learn a lot of web development.
-1. Next, explore the `./api` directory. This is where the Flask REST API is located. The REST API is used to interact with the database and perform other server-side tasks. You might also consider this the "application logic" or "business logic" layer of your app. 
-1. Finally, explore the `./database-files` directory. This is where the SQL scripts are located that will be used to initialize the MySQL database.
-
-### Setting Up Your Personal Testing Repo
-
-**Before you start**: You need to have a GitHub account and a terminal-based git client or GUI Git client such as GitHub Desktop or the Git plugin for VSCode.
-
-1. Clone this repo to your local machine.
-   1. You can do this by clicking the green "Code" button on the top right of the repo page and copying the URL. Then, in your terminal, run `git clone <URL>`.
-   1. Or, you can use the GitHub Desktop app to clone the repo. See [this page](https://docs.github.com/en/desktop/adding-and-cloning-repositories/cloning-a-repository-from-github-to-github-desktop) of the GitHub Desktop Docs for more info. 
-1. Open the repository folder in VSCode.
-1. Set up the `.env` file in the `api` folder based on the `.env.template` file.
-   1. Make a copy of the `.env.template` file and name it `.env`. 
-   1. Open the new `.env` file. 
-   1. On the last line, delete the `<...>` placeholder text, and put a password. Don't reuse any passwords you use for any other services (email, etc.) 
-1. For running the testing containers (for your personal repo), you will tell `docker compose` to use a different configuration file than the typical one.  The one you will use for testing is `sandbox.yaml`.
-   1. `docker compose -f sandbox.yaml up -d` to start all the containers in the background
-   1. `docker compose -f sandbox.yaml down` to shutdown and delete the containers
-   1. `docker compose -f sandbox.yaml up db -d` only start the database container (replace db with api or app for the other two services as needed)
-   1. `docker compose -f sandbox.yaml stop` to "turn off" the containers but not delete them.
-
-### Setting Up Your Team's Repo
-
-**Before you start**: As a team, one person needs to assume the role of _Team Project Repo Owner_.
-
-1. The Team Project Repo Owner needs to **fork** this template repo into their own GitHub account **and give the repo a name consistent with your project's name**. If you're worried that the repo is public, don't. Every team is doing a different project.
-1. In the newly forked team repo, the Team Project Repo Owner should go to the **Settings** tab, choose **Collaborators and Teams** on the left-side panel. Add each of your team members to the repository with Write access.
-
-**Remaining Team Members**
-
-1. Each of the other team members will receive an invitation to join.
-1. Once you have accepted the invitation, you should clone the Team's Project Repo to your local machine.
-1. Set up the `.env` file in the `api` folder based on the `.env.template` file.
-1. For running the testing containers (for your team's repo):
-   1. `docker compose up -d` to start all the containers in the background
-   1. `docker compose down` to shutdown and delete the containers
-   1. `docker compose up db -d` only start the database container (replace db with api or app for the other two services as needed)
-   1. `docker compose stop` to "turn off" the containers but not delete them.
-
-**Note:** You can also use the Docker Desktop GUI to start and stop the containers after the first initial run.
-
-
-## Handling User Role Access and Control
-
-In most applications, when a user logs in, they assume a particular role. For instance, when one logs in to a stock price prediction app, they may be a single investor, a portfolio manager, or a corporate executive (of a publicly traded company). Each of those _roles_ will likely present some similar features as well as some different features when compared to the other roles. So, how do you accomplish this in Streamlit? This is sometimes called Role-based Access Control, or **RBAC** for short.
-
-The code in this project demonstrates how to implement a simple RBAC system in Streamlit but without actually using user authentication (usernames and passwords). The Streamlit pages from the original template repo are split up among 3 roles - Political Strategist, USAID Worker, and a System Administrator role (this is used for any sort of system tasks such as re-training ML model, etc.). It also demonstrates how to deploy an ML model.
-
-Wrapping your head around this will take a little time and exploration of this code base. Some highlights are below.
-
-### Getting Started with the RBAC
-
-1. We need to turn off the standard panel of links on the left side of the Streamlit app. This is done through the `app/src/.streamlit/config.toml` file. So check that out. We are turning it off so we can control directly what links are shown.
-1. Then I created a new python module in `app/src/modules/nav.py`. When you look at the file, you will se that there are functions for basically each page of the application. The `st.sidebar.page_link(...)` adds a single link to the sidebar. We have a separate function for each page so that we can organize the links/pages by role.
-1. Next, check out the `app/src/Home.py` file. Notice that there are 3 buttons added to the page and when one is clicked, it redirects via `st.switch_page(...)` to that Roles Home page in `app/src/pages`. But before the redirect, I set a few different variables in the Streamlit `session_state` object to track role, first name of the user, and that the user is now authenticated.
-1. Notice near the top of `app/src/Home.py` and all other pages, there is a call to `SideBarLinks(...)` from the `app/src/nav.py` module. This is the function that will use the role set in `session_state` to determine what links to show the user in the sidebar.
-1. The pages are organized by Role. Pages that start with a `0` are related to the _Political Strategist_ role. Pages that start with a `1` are related to the _USAID worker_ role. And, pages that start with a `2` are related to The _System Administrator_ role.
-
-
-## Incorporating ML Models into your Project (Optional for CS 3200)
-
-_Note_: This project only contains the infrastructure for a hypothetical ML model.
-
-1. Collect and preprocess necessary datasets for your ML models.
-1. Build, train, and test your ML model in a Jupyter Notebook.
-   - You can store your datasets in the `datasets` folder. You can also store your Jupyter Notebook in the `ml-src` folder.
-1. Once your team is happy with the model's performance, convert your Jupyter Notebook code for the ML model to a pure Python script.
-   - You can include the `training` and `testing` functionality as well as the `prediction` functionality.
-   - Develop and test this pure Python script first in the `ml-src` folder.
-   - You may or may not need to include data cleaning, though.
-1. Review the `api/backend/ml_models` module. In this folder,
-   - We've put a sample (read _fake_) ML model in the `model01.py` file. The `predict` function will be called by the Flask REST API to perform '_real-time_' prediction based on model parameter values that are stored in the database. **Important**: you would never want to hard code the model parameter weights directly in the prediction function.
-1. The prediction route for the REST API is in `api/backend/customers/customer_routes.py`. Basically, it accepts two URL parameters and passes them to the `prediction` function in the `ml_models` module. The `prediction` route/function packages up the value(s) it receives from the model's `predict` function and send its back to Streamlit as JSON.
-1. Back in streamlit, check out `app/src/pages/11_Prediction.py`. Here, I create two numeric input fields. When the button is pressed, it makes a request to the REST API URL `/c/prediction/.../...` function and passes the values from the two inputs as URL parameters. It gets back the results from the route and displays them. Nothing fancy here.
+Quick per-file syntax checks were used frequently:
+Example: py -3 -m py_compile [25_User_Devices.py](http://_vscodecontentref_/39)"
+Key bug fixes (what caused the issues and how they were fixed)
+Duplicate sidebar and widget errors:
+Cause: Files contained duplicated content (multiple imports and repeated SideBarLinks() calls) after iterative edits. Streamlit throws a StreamlitDuplicateElementId when two identical widget instances are created.
+Fix: Consolidated each page to a single flow; removed duplicated blocks; added explicit key= where needed.
+Missing submit button / unsupported form kwargs:
+Cause: Some forms had no st.form_submit_button() inside the with st.form(...) block, or st.form_submit_button() used unsupported kwargs like key= for the runtime version in use.
+Fix: Ensured every with st.form block includes st.form_submit_button(); removed unsupported keyword args from form_submit_button.
+st.experimental_rerun() not available:
+Cause: Streamlit version mismatch; method unavailable in the environment.
+Fix: Use st.empty() placeholders and re-fetch data after actions instead of forcing a rerun.
+Other small fixes:
+Added try/except wrappers around API calls to show warnings instead of throwing runtime errors.
+Standardized sidebar API text input usage so the BASE_URL can be changed from the UI.

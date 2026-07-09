@@ -47,9 +47,7 @@ with st.form(key='login_form'):
 st.write('')
 st.write('### What would you like to do today?')
 
-if st.button('Goal', type='primary', use_container_width=True):
-    # keep existing navigation target
+if st.button('Goal', key='btn_goal', type='primary', use_container_width=True):
     st.switch_page('pages/41_User_Goal.py')
-if st.button('Goal', type='primary', use_container_width=True):
-    # keep existing navigation target
+if st.button('Routine Planning', key='btn_routine', type='primary', use_container_width=True):
     st.switch_page('pages/42_Routine_Planning.py')

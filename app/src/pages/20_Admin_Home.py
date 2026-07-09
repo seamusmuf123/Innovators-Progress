@@ -17,7 +17,7 @@ with cols[0]:
         st.switch_page('pages/21_ML_Model_Mgmt.py')
 
     if st.button('Manage Analyst Team', type='secondary', use_container_width=True):
-        st.switch_page('pages/22_Analyst_Team.py')
+        st.switch_page('pages/21_Analyst_Team.py')
 
     if st.button('View Reports', type='secondary', use_container_width=True):
         st.switch_page('pages/23_Reports.py')

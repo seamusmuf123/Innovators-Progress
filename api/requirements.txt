@@ -4,3 +4,7 @@ mysql-connector-python>=8.1.0
 python-dotenv>=1.0.0
 gunicorn>=21.2.0
 Werkzeug>=2.3.0
+PyMySQL>=1.1.0
+flask-mysql
+numpy>=1.24.0
+cryptography>=41.0.0

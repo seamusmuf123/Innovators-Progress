@@ -291,11 +291,7 @@ INSERT INTO Membership (membership_ID, status, start_date, end_date, billing)
 VALUES
     (501, 'Premium', '2025-01-01', '2025-12-31', 100),
     (502, 'General', '2024-01-01', '2024-12-31', 1200),
-    (503, 'Gold', '2025-06-01', '2026-05-31', 300);
-
--- MEMBERSHIP (add 27 more -> total 30)
-INSERT INTO Membership (membership_ID, status, start_date, end_date, billing)
-VALUES
+    (503, 'Gold', '2025-06-01', '2026-05-31', 300),
     (504, 'Basic', '2025-02-01', '2026-01-31', 50),
     (505, 'Silver', '2025-03-01', '2026-02-28', 75),
     (506, 'Bronze', '2025-04-01', '2026-03-31', 60),
@@ -354,7 +350,34 @@ INSERT INTO `System` (system_ID, logs, updates, alerts)
 VALUES
     (801, 'System rebooted', 'Patch v1.3', 'Security Scan Complete'),
     (802, 'Backup completed', 'Patch v1.4', 'Disk Space Low'),
-    (803, 'New login detected', 'Patch v1.5', 'Unauthorized Access');
+    (803, 'New login detected', 'Patch v1.5', 'Unauthorized Access'),
+    (804, 'Firewall updated', 'Patch v1.6', 'No alerts'),
+    (805, 'Database backup', 'Backup script v2', 'Storage warning'),
+    (806, 'SSL Certificate renewed', 'Cert v3', 'Expiring soon'),
+    (807, 'API latency spike', 'Investigate third-party', 'High latency'),
+    (808, 'Disk cleanup', 'Remove temp files', 'Disk low'),
+    (809, 'User session reset', 'Auth fix', 'Login failures'),
+    (810, 'Monitoring added', 'New metrics', 'No alerts'),
+    (811, 'Logging rotation', 'Rotate logs', 'No alerts'),
+    (812, 'Storage migrated', 'Move to SSD', 'Migration complete'),
+    (813, 'Service restart', 'Worker restart', 'Service degraded'),
+    (814, 'Dependency update', 'Library patch', 'Compatibility note'),
+    (815, 'Cache cleared', 'Cache invalidation', 'No alerts'),
+    (816, 'Rate limiting enabled', 'Throttle added', 'No alerts'),
+    (817, 'Third-party auth fix', 'OAuth adjustment', 'Token errors'),
+    (818, 'Monitoring alert', 'Threshold adjusted', 'Repeated alerts'),
+    (819, 'API auth issue', 'Hotfix applied', 'Auth errors'),
+    (820, 'Worker scale', 'Scale up workers', 'Scaling events'),
+    (821, 'Queue backlog', 'Process backlog', 'High queue depth'),
+    (822, 'Health check added', 'Probe configured', 'No alerts'),
+    (823, 'DB index added', 'Query perf improved', 'No alerts'),
+    (824, 'TLS hardened', 'Protocols updated', 'No alerts'),
+    (825, 'User import', 'Bulk users added', 'No alerts'),
+    (826, 'Analytics job', 'Hourly job', 'Job failed occasionally'),
+    (827, 'Search indexer', 'Reindex', 'No alerts'),
+    (828, 'Configuration audit', 'Permissions updated', 'No alerts'),
+    (829, 'Backup verify', 'Checksum ok', 'No alerts'),
+    (830, 'Service decommission', 'Old worker removed', 'No alerts');
 
 
 -- SYSTEM_ADMIN
@@ -398,6 +421,10 @@ VALUES
     (701, 'Fitbit Sync'),
     (702, 'Apple Health'),
     (703, 'Google Fit');
+
+-- USER_DEVICE (add 27 more -> total 30)
+INSERT INTO User_Device (device_ID, transfer)
+VALUES
     (704, 'Garmin Connect'),
     (705, 'Samsung Health'),
     (706, 'Polar Flow'),
@@ -519,8 +546,66 @@ INSERT INTO Policy (policy_ID, title, description)
 VALUES
     (1, 'Gym Safety Policy', 'Ensure all equipment is sanitized and in good condition.'),
     (2, 'Video Surveillance Policy', 'All areas are monitored for safety and accountability.'),
-    (3, 'Emergency Protocols', 'Follow posted protocols in the event of an emergency.');
+    (3, 'Emergency Protocols', 'Follow posted protocols in the event of an emergency.'),
+    (4, 'Strength & Conditioning', '3x/week strength + 2x cardio', 'High Protein'),
+    (5, 'Cardio Focus', '5x/week cardio sessions', 'Balanced'),
+    (6, 'Flexibility & Mobility', 'Daily stretching routine', 'Anti-inflammatory'),
+    (7, 'Beginner Strength', 'Full-body 3x/week', 'Moderate Protein'),
+    (8, 'Hypertrophy Plan', '4x/week split', 'High Protein + Calorie Surplus'),
+    (9, 'Endurance Build', 'Long runs + intervals', 'Carb-heavy'),
+    (10, 'Weight Loss Blitz', 'HIIT + calorie deficit', 'Low Carb'),
+    (11, 'Post-Injury Rehab', 'Low-impact strengthening', 'Balanced + Anti-inflammatory'),
+    (12, 'Athlete Prep', 'Sport-specific drills', 'Periodized nutrition'),
+    (13, 'Core Strength', 'Daily core circuits', 'Balanced'),
+    (14, 'Pilates Fusion', 'Pilates 3x/week + mobility', 'Whole foods'),
+    (15, 'Circuit Training', 'Full-body circuits 4x/week', 'Protein-focused'),
+    (16, 'Yoga & Recovery', '3x/week yoga + recovery', 'Plant-forward'),
+    (17, 'Strength Endurance', 'Heavy circuits', 'Mixed Macronutrients'),
+    (18, 'Powerlifting Prep', 'Squat/Bench/Deadlift cycles', 'High Protein'),
+    (19, 'Sprint Training', 'Short sprints + plyometrics', 'High Carb around workouts'),
+    (20, 'Triathlon Base', 'Swim/Bike/Run balance', 'Endurance-focused'),
+    (21, 'Functional Fitness', 'Movement-based workouts', 'Mixed Macronutrients'),
+    (22, 'Senior Mobility', 'Low-impact mobility + balance', 'Heart-healthy diet'),
+    (23, 'Teen Fitness', 'Education + supervised strength', 'Balanced growth diet'),
+    (24, 'Weekend Warrior', '2 intense weekend sessions', 'Flexible diet'),
+    (25, 'Boxing Conditioning', 'Bag + footwork drills', 'Lean Protein'),
+    (26, 'Dance Cardio', 'Choreography + cardio', 'Carb-timed meals'),
+    (27, 'Functional Hypertrophy', 'Compound lifts + volume', 'Protein & Carb periodization'),
+    (28, 'Low Impact Cardio', 'Elliptical & pool sessions', 'Low Fat'),
+    (29, 'Military Prep', 'Ruck marches + strength', 'High Calorie'),
+    (30, 'Postpartum Return', 'Gradual strength rebuild', 'Nutrient-dense'),
+    (31, 'Sprint to Marathon', 'Speed + long-run mix', 'Endurance nutrition');
 
+-- REPORT (add 27 more -> total 30)
+INSERT INTO Report (report_ID, title, checklist, completed_goals, uncompleted_goals, work_efficiency, time_based_summary)
+VALUES
+    (604, 'Week 4 Summary', 'Warmup, Program Adherence', '3', '0', '88%', '5h 10min'),
+    (605, 'Week 5 Summary', 'HIIT, Strength', '2', '2', '72%', '4h 45min'),
+    (606, 'Month 2 Summary', 'Cardio, Mobility', '8', '1', '80%', '20h 0min'),
+    (607, 'Q2 Review', 'Metrics audit, equipment log', '15', '3', '82%', '65h 30min'),
+    (608, 'Injury Follow-up', 'Rehab checklist', '1', '0', '90%', '2h 15min'),
+    (609, 'Membership Trends', 'Churn analysis, cohort', '0', '0', '75%', '12h 0min'),
+    (610, 'Safety Incident Log', 'Incident checklist', '0', '1', '60%', '1h 20min'),
+    (611, 'Facility Audit', 'Maintenance checklist', '10', '2', '85%', '8h 40min'),
+    (612, 'Staff Training', 'Attendance checklist', '5', '0', '95%', '6h 0min'),
+    (613, 'Equipment Performance', 'Reliability checklist', '2', '1', '78%', '3h 55min'),
+    (614, 'Monthly Engagement', 'Event checklist', '12', '0', '87%', '14h 5min'),
+    (615, 'Program Effectiveness', 'Survey + metrics', '6', '2', '81%', '10h 10min'),
+    (616, 'Nutrition Workshops', 'Attendance + feedback', '3', '0', '92%', '5h 0min'),
+    (617, 'Member Feedback', 'Collect + act', '9', '1', '84%', '7h 30min'),
+    (618, 'System Downtime', 'Restore checklist', '0', '0', '70%', '0h 45min'),
+    (619, 'New Equipment Rollout', 'Install checklist', '0', '0', '88%', '2h 30min'),
+    (620, 'Holiday Operations', 'Staffing checklist', '1', '0', '83%', '9h 20min'),
+    (621, 'Attendance Spike', 'Investigate cause', '0', '0', '76%', '1h 10min'),
+    (622, 'Retention Study', 'Cohort analysis', '4', '2', '79%', '30h 0min'),
+    (623, 'Equipment Loss Audit', 'Inventory checklist', '0', '1', '67%', '2h 0min'),
+    (624, 'Weekly Highlights', 'Top performers', '7', '0', '90%', '3h 0min'),
+    (625, 'Challenge Wrap-up', 'Competition checklist', '20', '0', '93%', '6h 15min'),
+    (626, 'Maintenance Summary', 'Completed jobs', '25', '0', '89%', '16h 0min'),
+    (627, 'Energy Efficiency', 'Meter readings', '0', '0', '74%', '4h 40min'),
+    (628, 'Staff Performance', 'Review checklist', '6', '1', '86%', '10h 30min'),
+    (629, 'Monthly Revenue', 'Billing checklist', '0', '0', '91%', '2h 55min'),
+    (630, 'Client Onboarding', 'Welcome checklist', '30', '0', '98%', '12h 0min');
 
 
 -- EQUIPMENT_MAINTENANCE
@@ -528,7 +613,34 @@ INSERT INTO Equipment_Maintenance (equip_ID, `condition`, requestForm)
 VALUES
     (401, 'Good', 'No action needed'),
     (402, 'Requires Maintenance', 'Treadmill belt slipping'),
-    (403, 'Out of Order', 'Elliptical screen not working');
+    (403, 'Out of Order', 'Elliptical screen not working'),
+    (404, 'Good', 'Replace treadmill display cover'),
+    (405, 'Requires Maintenance', 'Adjust elliptical resistance'),
+    (406, 'Out of Order', 'Spin bike belt replacement'),
+    (407, 'Good', 'Clean rowing machine rail'),
+    (408, 'Requires Maintenance', 'Fix incline motor'),
+    (409, 'Good', 'Tighten dumbbell rack'),
+    (410, 'Requires Maintenance', 'Lubricate cable pulley'),
+    (411, 'Out of Order', 'Repair smith machine guide'),
+    (412, 'Good', 'Replace bench padding'),
+    (413, 'Requires Maintenance', 'Rebuild resistance bands'),
+    (414, 'Good', 'Calibrate leg press'),
+    (415, 'Requires Maintenance', 'Replace treadmill belt'),
+    (416, 'Out of Order', 'Fix rowing footrests'),
+    (417, 'Good', 'Service bike chain'),
+    (418, 'Requires Maintenance', 'Inspect pulley bearings'),
+    (419, 'Good', 'Update touchscreen OS'),
+    (420, 'Requires Maintenance', 'Check power supplies'),
+    (421, 'Out of Order', 'Replace broken mirror panel'),
+    (422, 'Good', 'Clean AC vents'),
+    (423, 'Requires Maintenance', 'Repaint locker area'),
+    (424, 'Good', 'Replace jump rope handles'),
+    (425, 'Requires Maintenance', 'Footing on plyo boxes'),
+    (426, 'Good', 'Balance platform recalibration'),
+    (427, 'Requires Maintenance', 'Fix lat pulldown attachment'),
+    (428, 'Out of Order', 'Repair smith machine cable'),
+    (429, 'Good', 'Replace exercise mat stock'),
+    (430, 'Requires Maintenance', 'Inspect treadmill emergency stop');
 
 
 -- EMP_ONLY
@@ -668,6 +780,9 @@ VALUES
 -- VIDEO_FOOTAGE (add 27 more -> total 30)
 INSERT INTO Video_Footage (footage_ID, camera_ID, timestamp)
 VALUES
+    (301, 'CAM_A1', '2025-08-01 08:30:00'),
+    (302, 'CAM_B2', '2025-08-02 15:00:00'),
+    (303, 'CAM_C3', '2025-08-03 19:45:00'),
     (304, 'CAM_D4', '2025-08-04 09:00:00'),
     (305, 'CAM_E5', '2025-08-05 10:15:00'),
     (306, 'CAM_F6', '2025-08-06 11:30:00'),
@@ -699,6 +814,9 @@ VALUES
 -- POLICY (add 27 more -> total 30)
 INSERT INTO Policy (policy_ID, title, description)
 VALUES
+    (1, 'Gym Safety Policy', 'Ensure all equipment is sanitized and in good condition.'),
+    (2, 'Video Surveillance Policy', 'All areas are monitored for safety and accountability.'),
+    (3, 'Emergency Protocols', 'Follow posted protocols in the event of an emergency.'),
     (4, 'Equipment Usage Policy', 'Members must wipe equipment after use and follow posted instructions.'),
     (5, 'Membership Refund Policy', 'Refunds are processed within 30 days with valid reason.'),
     (6, 'Child Policy', 'Children under 12 must be supervised by an adult.'),
@@ -726,34 +844,3 @@ VALUES
     (28, 'Food Policy', 'No outside food in gym areas.'),
     (29, 'Temperature Policy', 'HVAC maintained between 68-74F.'),
     (30, 'Incident Reporting', 'Report incidents to front desk immediately.');
-
--- EQUIPMENT_MAINTENANCE (add 27 more -> total 30)
-INSERT INTO Equipment_Maintenance (equip_ID, `condition`, requestForm)
-VALUES
-    (404, 'Good', 'Replace treadmill display cover'),
-    (405, 'Requires Maintenance', 'Adjust elliptical resistance'),
-    (406, 'Out of Order', 'Spin bike belt replacement'),
-    (407, 'Good', 'Clean rowing machine rail'),
-    (408, 'Requires Maintenance', 'Fix incline motor'),
-    (409, 'Good', 'Tighten dumbbell rack'),
-    (410, 'Requires Maintenance', 'Lubricate cable pulley'),
-    (411, 'Out of Order', 'Repair smith machine guide'),
-    (412, 'Good', 'Replace bench padding'),
-    (413, 'Requires Maintenance', 'Rebuild resistance bands'),
-    (414, 'Good', 'Calibrate leg press'),
-    (415, 'Requires Maintenance', 'Replace treadmill belt'),
-    (416, 'Out of Order', 'Fix rowing footrests'),
-    (417, 'Good', 'Service bike chain'),
-    (418, 'Requires Maintenance', 'Inspect pulley bearings'),
-    (419, 'Good', 'Update touchscreen OS'),
-    (420, 'Requires Maintenance', 'Check power supplies'),
-    (421, 'Out of Order', 'Replace broken mirror panel'),
-    (422, 'Good', 'Clean AC vents'),
-    (423, 'Requires Maintenance', 'Repaint locker area'),
-    (424, 'Good', 'Replace jump rope handles'),
-    (425, 'Requires Maintenance', 'Footing on plyo boxes'),
-    (426, 'Good', 'Balance platform recalibration'),
-    (427, 'Requires Maintenance', 'Fix lat pulldown attachment'),
-    (428, 'Out of Order', 'Repair smith machine cable'),
-    (429, 'Good', 'Replace exercise mat stock'),
-    (430, 'Requires Maintenance', 'Inspect treadmill emergency stop');

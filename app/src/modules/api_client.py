@@ -2,7 +2,7 @@ import os
 import requests
 
 # Simple API client used by Streamlit pages
-BASE_URL = os.getenv("BASE_URL", "http://localhost:4000")
+BASE_URL = os.getenv("BASE_URL", "http://api:4000")
 
 
 def set_base_url(url: str):
@@ -36,7 +36,7 @@ import os
 import requests
 
 # Simple API client used by Streamlit pages
-BASE_URL = os.getenv("BASE_URL", "http://localhost:4000")
+BASE_URL = os.getenv("BASE_URL", "http://api:4000")
 
 
 def set_base_url(url: str):

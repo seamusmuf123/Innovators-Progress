@@ -98,3 +98,6 @@ def delete_analyst(analyst_id):
         current_app.logger.error(f'Error deleting analyst {analyst_id}: {e}')
         return make_response(jsonify({'error': str(e)}), 500)
 
+
+# ---------------------- Analysis Team endpoints ----------------------
+
